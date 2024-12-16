@@ -17,7 +17,7 @@ const target = process.env.BUILD_TARGET === 'cloud-release' ? 'com' : process.en
 export default defineConfig(({ mode }) => {
   return {
     server: {
-      port: 666
+      port: 8080
     },
     // 向import.meta.env注入变量,无法注入全局windows,只能注入import.meta.env中
     // 'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE)
@@ -86,7 +86,7 @@ export default defineConfig(({ mode }) => {
       //   include: [/\.vue$/, /\.tsx$/],
       // }),
       vueSetupExtend(),
-      lifecycle === 'report' ? visualizer({ gzipSize: true, open: true, brotliSize: true, filename: 'report.html' }) : null,
+      lifecycle === 'report' ? visualizer({ gzipSize: true, open: true, brotliSize: true, filename: 'report.html' }) : null
       // viteCommonjs()
     ],
     resolve: {

@@ -1,6 +1,6 @@
 {
-  "name": "ant-design-pro-vue3",
-  "version": "3.0.0",
+  "name": "kf-manager",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
