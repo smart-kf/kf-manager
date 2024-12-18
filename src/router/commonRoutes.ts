@@ -46,6 +46,12 @@ export default [
             meta: { title: 'menu.account.center', keepAlive: true }
           }
         ]
+      },
+      {
+        path: '/chat',
+        name: 'Chat',
+        component: () => import('@/views/chat/index.vue'),
+        meta: { title: '聊天', keepAlive: false }
       }
     ]
   },
