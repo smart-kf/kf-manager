@@ -1,15 +1,12 @@
 <template>
   <div class="main">
     <a-form id="formLogin" class="user-layout-login" @submit="handleSubmit" :model="formRef">
-      <a-tabs :activeKey="customActiveKey" :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }"
-        @change="handleTabClick">
+      <a-tabs :activeKey="customActiveKey" :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }" @change="handleTabClick">
         <!-- 账户密码登录 -->
         <a-tab-pane key="tab1" :tab="$t('user.login.tab-login-credentials')">
-          <a-alert v-if="isLoginError" type="error" showIcon style="margin-bottom: 24px"
-            :message="$t('user.login.message-invalid-credentials')" />
+          <a-alert v-if="isLoginError" type="error" showIcon style="margin-bottom: 24px" :message="$t('user.login.message-invalid-credentials')" />
           <a-form-item v-bind="validateInfos.username">
-            <a-input size="large" type="text" :placeholder="$t('user.login.username.placeholder')"
-              v-model:value="formRef.username">
+            <a-input size="large" type="text" :placeholder="$t('user.login.username.placeholder')" v-model:value="formRef.username">
               <template #prefix>
                 <UserOutlined :style="{ color: 'rgba(0,0,0,.25)' }" />
               </template>
@@ -17,8 +14,7 @@
           </a-form-item>
 
           <a-form-item v-bind="validateInfos.password">
-            <a-input-password size="large" :placeholder="$t('user.login.password.placeholder')"
-              v-model:value="formRef.password">
+            <a-input-password size="large" :placeholder="$t('user.login.password.placeholder')" v-model:value="formRef.password">
               <template #prefix>
                 <LockOutlined :style="{ color: 'rgba(0,0,0,.25)' }" />
               </template>
@@ -28,8 +24,7 @@
         <!-- 手机号登录 -->
         <a-tab-pane key="tab2" :tab="$t('user.login.tab-login-mobile')">
           <a-form-item v-bind="validateInfos.mobile">
-            <a-input size="large" type="text" :placeholder="$t('user.login.mobile.placeholder')"
-              v-model:value="formRef.mobile">
+            <a-input size="large" type="text" :placeholder="$t('user.login.mobile.placeholder')" v-model:value="formRef.mobile">
               <MobileOutlined :style="{ color: 'rgba(0,0,0,.25)' }" />
             </a-input>
           </a-form-item>
@@ -37,18 +32,14 @@
           <a-row :gutter="16">
             <a-col class="gutter-row" :span="16">
               <a-form-item v-bind="validateInfos.captcha">
-                <a-input size="large" type="text" :placeholder="$t('user.login.mobile.verification-code.placeholder')"
-                  v-model:value="formRef.captcha">
+                <a-input size="large" type="text" :placeholder="$t('user.login.mobile.verification-code.placeholder')" v-model:value="formRef.captcha">
                   <MailOutlined :style="{ color: 'rgba(0,0,0,.25)' }" />
                 </a-input>
               </a-form-item>
             </a-col>
             <a-col class="gutter-row" :span="8">
               <a-button class="getCaptcha" tabindex="-1" :disabled="state.smsSendBtn" @click.stop.prevent="getCaptcha">
-                {{
-                  (!state.smsSendBtn && $t("user.register.get-verification-code")) ||
-                  state.time + " s"
-                }}
+                {{ (!state.smsSendBtn && $t('user.register.get-verification-code')) || state.time + ' s' }}
               </a-button>
             </a-col>
           </a-row>
@@ -56,22 +47,18 @@
       </a-tabs>
 
       <a-form-item v-bind="validateInfos.rememberMe">
-        <a-checkbox v-model:checked="formRef.rememberMe" style="float:left">
-          {{
-            $t("user.login.remember-me")
-          }}
+        <a-checkbox v-model:checked="formRef.rememberMe" style="float: left">
+          {{ $t('user.login.remember-me') }}
         </a-checkbox>
-        <router-link :to="{ name: 'recover' }" params="{ user: 'aaa' }" class="forge-password" style="float: right">{{
-          $t("user.login.forgot-password") }}</router-link>
+        <router-link :to="{ name: 'recover' }" params="{ user: 'aaa' }" class="forge-password" style="float: right">{{ $t('user.login.forgot-password') }}</router-link>
       </a-form-item>
 
       <a-form-item style="margin-top: 24px">
-        <a-button size="large" type="primary" htmlType="submit" class="login-button" :loading="state.loginBtn"
-          :disabled="state.loginBtn">{{ $t("user.login.login") }}</a-button>
+        <a-button size="large" type="primary" htmlType="submit" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn">{{ $t('user.login.login') }}</a-button>
       </a-form-item>
 
       <div class="user-login-other">
-        <span>{{ $t("user.login.sign-in-with") }}</span>
+        <span>{{ $t('user.login.sign-in-with') }}</span>
         <a>
           <AlipayCircleOutlined />
         </a>
@@ -82,39 +69,21 @@
           <WeiboCircleOutlined />
         </a>
         <router-link class="register" :to="{ name: 'register' }">
-          {{
-            $t("user.login.signup")
-          }}
+          {{ $t('user.login.signup') }}
         </router-link>
       </div>
     </a-form>
-
-    <!-- <two-step-captcha
-      v-if="requiredTwoStepCaptcha"
-      :visible="stepCaptchaVisible"
-      @success="stepCaptchaSuccess"
-      @cancel="stepCaptchaCancel"
-    ></two-step-captcha>-->
   </div>
 </template>
 
 <script lang="ts" setup name="Login">
-// import TwoStepCaptcha from '@/components/tools/TwoStepCaptcha.vue';
 import { encryptByMd5 } from '@/utils/encrypt'
 import { ref, reactive, UnwrapRef, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Form } from 'ant-design-vue'
 import { loginSuccess, requestFailed } from './helper'
 import { useRouter } from 'vue-router'
-import {
-  MobileOutlined,
-  MailOutlined,
-  AlipayCircleOutlined,
-  TaobaoCircleOutlined,
-  WeiboCircleOutlined,
-  UserOutlined,
-  LockOutlined
-} from '@ant-design/icons-vue'
+import { MobileOutlined, MailOutlined, AlipayCircleOutlined, TaobaoCircleOutlined, WeiboCircleOutlined, UserOutlined, LockOutlined } from '@ant-design/icons-vue'
 import * as api from './service'
 import { FormState } from './types'
 import config from '@/config/defaultSettings'
@@ -197,8 +166,7 @@ const isLoginError = ref(false)
 const handleSubmit = (e: Event) => {
   e.preventDefault()
   state.loginBtn = true
-  const validateFieldsKey =
-    customActiveKey.value === 'tab1' ? ['username', 'password'] : ['mobile', 'captcha']
+  const validateFieldsKey = customActiveKey.value === 'tab1' ? ['username', 'password'] : ['mobile', 'captcha']
 
   validate(validateFieldsKey)
     .then(async () => {
@@ -255,7 +223,7 @@ const stepCaptchaCancel = () => {
     stepCaptchaVisible.value = false
   })
 }
-    //#endregion
+//#endregion
 </script>
 
 <style lang="less" scoped>

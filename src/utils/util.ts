@@ -1,12 +1,13 @@
 import ls from '@/utils/Storage'
 import { ACCESS_TOKEN, PERMISSION, USER_INFO, MENU_NAV } from '@/store/mutation-types'
-import dayjs from 'dayjs';
+import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
+// 清除token 权限，用户信息，菜单信息
 export function clearUserInfo() {
   ls.remove(ACCESS_TOKEN)
   ls.remove(PERMISSION)
@@ -24,19 +25,17 @@ export function timeFix() {
 export const encryptKeys = {
   // key最少4位,否则报错
   key: '1111',
-  iv: '1',
-};
+  iv: '1'
+}
 
+// url参数转对象
 export const getQueryParameters = (options) => {
   const url = options.url
   const search = url.split('?')[1]
   if (!search) {
     return {}
   }
-  return JSON.parse('{"' + decodeURIComponent(search)
-    .replace(/"/g, '\\"')
-    .replace(/&/g, '","')
-    .replace(/=/g, '":"') + '"}')
+  return JSON.parse('{"' + decodeURIComponent(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}')
 }
 
 export const getBody = (options) => {
@@ -65,7 +64,7 @@ export function scorePassword(pass) {
 
   let variationCount = 0
   for (var check in variations) {
-    variationCount += (variations[check] === true) ? 1 : 0
+    variationCount += variations[check] === true ? 1 : 0
   }
   score += (variationCount - 1) * 10
 
@@ -73,9 +72,9 @@ export function scorePassword(pass) {
 }
 
 export const firstLetterIsUpperCase = function (str) {
-  var reg = /^[A-Z][A-z0-9]*$/;
-  return reg.test(str);
-};
+  var reg = /^[A-Z][A-z0-9]*$/
+  return reg.test(str)
+}
 
 export const separator = ';'
 
@@ -118,10 +117,10 @@ export const isDev = import.meta.env.DEV
 export const baseURL = isDev ? '/' : '生产地址'
 
 export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {
-  if (!date) return null;
+  if (!date) return null
   return dayjs(date).format(format)
 }
-
+// 对象转数组
 export function objToArr(obj) {
   let arr: any = []
   for (const o in obj) {
@@ -129,16 +128,16 @@ export function objToArr(obj) {
   }
   return arr
 }
-
+// 重置对象的每个值
 export function clearObj(obj) {
   for (const key in obj) {
     obj[key] = undefined
   }
 }
-
+// 删除数组里的值
 export function delArrItem(arr, item) {
-  const index = arr.indexOf(item);
-  arr.splice(index, 1);
+  const index = arr.indexOf(item)
+  arr.splice(index, 1)
 }
 
 export const useImageUrl = (name: string, type: string = 'png'): string => {
@@ -151,15 +150,16 @@ export const useImageUrl = (name: string, type: string = 'png'): string => {
 }
 
 export const batchDispatch = (dispatch, arr) => {
-  arr.forEach(item => {
+  arr.forEach((item) => {
     dispatch(item)
-  });
+  })
 }
 
+// 创建file formDatas
 export const createFormData = (formDatas, file) => {
   const formData = new FormData()
   if (file.length) {
-    file.map(item => {
+    file.map((item) => {
       formData.append('file', item)
     })
   } else {

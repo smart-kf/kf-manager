@@ -1,7 +1,6 @@
 import { UserLayout } from '@/layouts'
+import { BasicLayout, RouteView } from '@/layouts'
 import { type Router } from './types'
-import { example } from './exampleRouterMap'
-import errorPage from '@/views/exception/500.vue'
 
 // info:todo:1.如果使用服务端获取路由,path: '/',这块路由再写就会被覆盖
 // 2.router.addRoute(parent, routeObj),添加parent,它就会自动加上/parent/xxx,直接写parent即可,就算嵌套多层也没事,自动变成/xxxx/xxxx/parent/xxxxx
@@ -9,7 +8,53 @@ import errorPage from '@/views/exception/500.vue'
 // 在生成路由时，主路由上的path会被自动添加到子路由之前，所以子路由上的path不用在重新声明主路由上的path了。
 export default [
   // 示例用路由,可删
-  example,
+  {
+    path: '/',
+    name: 'index',
+    component: BasicLayout,
+    meta: { title: 'menu.home' },
+    redirect: '/dashboard',
+    children: [
+      // dashboard
+      {
+        path: '/dashboard',
+        name: 'dashboard',
+        redirect: '/dashboard/workplace',
+        component: RouteView,
+        meta: { title: 'menu.dashboard.title', icon: 'bx-analyse', keepAlive: true, permission: ['admin'] },
+        children: [
+          {
+            path: 'workplace',
+            name: 'Workplace',
+            component: () => import('@/views/Home.vue'),
+            meta: { title: 'menu.dashboard.workplace', keepAlive: true, permission: ['admin'] }
+          }
+        ]
+      },
+      // account
+      {
+        path: '/account',
+        component: RouteView,
+        redirect: '/account/center',
+        name: 'account',
+        meta: { title: 'menu.account.title', icon: 'bx-analyse', keepAlive: true },
+        children: [
+          {
+            path: '/account/center',
+            name: 'center',
+            component: () => import('@/views/account/index.vue'),
+            meta: { title: 'menu.account.center', keepAlive: true }
+          }
+        ]
+      },
+      {
+        path: '/chat',
+        name: 'Chat',
+        component: () => import('@/views/chat/index.vue'),
+        meta: { title: '聊天', keepAlive: false }
+      }
+    ]
+  },
   {
     path: '/user',
     name: 'user',
@@ -37,22 +82,12 @@ export default [
         path: 'recover',
         name: 'recover',
         component: undefined
-      },
+      }
     ]
-  },
-  {
-    path: '/exception/500',
-    name: 'error',
-    component: errorPage,
   },
   {
     path: '/:path(.*)',
     name: 'NoMatch',
-    component: () => import('@/views/exception/404.vue'),
-  },
-  {
-    path: '/chat',
-    name: 'Chat',
-    component: () => import('@/views/chat/index.vue')
+    component: () => import('@/views/exception/404.vue')
   }
 ] as Router[]

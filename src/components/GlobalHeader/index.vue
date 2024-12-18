@@ -1,9 +1,7 @@
 <template>
   <transition name="showHeader">
     <div v-if="visible" class="header-animat">
-      <a-layout-header v-if="visible"
-        :class="[fixedHeader && 'ant-header-fixedHeader', sidebarOpened ? 'ant-header-side-opened' : 'ant-header-side-closed',]"
-        :style="{ padding: '0' }">
+      <a-layout-header v-if="visible" :class="[fixedHeader && 'ant-header-fixedHeader', sidebarOpened ? 'ant-header-side-opened' : 'ant-header-side-closed']" :style="{ padding: '0' }">
         <div v-if="mode === 'sidemenu'" class="header">
           <span @click="toggle">
             <template v-if="device === 'mobile'">
@@ -62,12 +60,12 @@ const props = defineProps({
     type: Boolean,
     required: false,
     default: false
-  },
-  device: {
-    type: String,
-    required: false,
-    default: 'desktop'
   }
+  // device: {
+  //   type: String,
+  //   required: false,
+  //   default: 'desktop'
+  // }
 })
 const visible = ref<boolean>(true)
 const oldScrollTop = ref<number>(0)
@@ -97,7 +95,6 @@ const handleScroll = () => {
   }
 }
 
-
 const emit = defineEmits(['toggle', 'refresh'])
 const toggle = () => {
   emit('toggle')
@@ -114,7 +111,6 @@ onBeforeUnmount(() => {
 const refreshPage = () => {
   emit('refresh')
 }
-
 </script>
 
 <style lang="less">

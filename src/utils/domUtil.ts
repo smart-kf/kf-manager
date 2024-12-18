@@ -1,6 +1,7 @@
 import config from '@/config/defaultSettings'
 import i18n from '@/locales/useI18n'
 
+// 设置document标题
 export const setDocumentTitle = function (to) {
   if (config.dynamicBrowserTab) {
     const title = to?.meta?.title
