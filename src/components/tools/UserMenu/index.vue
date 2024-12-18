@@ -14,18 +14,6 @@
         </span>
         <template #overlay>
           <a-menu class="user-dropdown-menu-wrapper">
-            <!-- <a-menu-item key="0">
-            <router-link :to="{ name: 'center' }">
-              <a-icon type="user" />
-              <span>个人中心</span>
-            </router-link>
-            </a-menu-item>-->
-            <!-- <a-menu-item key="1">
-            <router-link :to="{ name: 'settings' }">
-              <a-icon type="setting" />
-              <span>账户设置</span>
-            </router-link>
-            </a-menu-item>-->
             <a-menu-item key="4" @click="showSystemSetting">
               <a>
                 <SettingOutlined />
@@ -38,10 +26,7 @@
                 <span>{{ $t('tools.userMenu.lockScreen') }}</span>
               </a>
             </a-menu-item>
-            <!-- <a-menu-item key="2" disabled>
-              <SettingOutlined />
-              <span>{{ $t('tools.userMenu.test') }}</span>
-            </a-menu-item>-->
+
             <a-menu-divider />
             <a-menu-item key="3">
               <a href="javascript:;" @click="handleLogout">
@@ -52,9 +37,6 @@
           </a-menu>
         </template>
       </a-dropdown>
-      <span style="overflow: hidden;display: inline-block;">
-        <SelectLang :class="theme" class="action" />
-      </span>
     </div>
   </div>
 </template>
@@ -64,19 +46,12 @@ import NoticeIcon from '@/components/NoticeIcon/index.vue'
 import { logout } from '@/views/user/service'
 import { USER_INFO } from '@/store/mutation-types'
 import { Modal } from 'ant-design-vue'
-import {
-  QuestionCircleOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  LockOutlined
-} from '@ant-design/icons-vue'
+import { QuestionCircleOutlined, SettingOutlined, LogoutOutlined, LockOutlined } from '@ant-design/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { systemConfig } from '@/store/reactiveState'
-import SelectLang from '@/components/SelectLang'
 import ls from '@/utils/Storage'
 import { useRouter } from 'vue-router'
 import { clearUserInfo } from '@/utils/util'
-
 
 const props = defineProps(['theme'])
 const { t } = useI18n()
@@ -92,7 +67,7 @@ const handleLogout = () => {
         router.push({ path: '/user/login' })
       })
     },
-    onCancel() { }
+    onCancel() {}
   })
 }
 const showSystemSetting = () => {

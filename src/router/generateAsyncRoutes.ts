@@ -1,11 +1,12 @@
 import { cloneDeep } from 'lodash-es'
 import i18n from '@/locales/useI18n'
 import ls from '@/utils/Storage'
-import { BasicLayout, RouteView, BlankLayout } from '@/layouts'//, BlankLayout, PageView, RouteView
+import { BasicLayout, RouteView, BlankLayout } from '@/layouts' //, BlankLayout, PageView, RouteView
 import { getRoutePages } from '@/utils/batchImportFiles'
 import { MENU_NAV } from '@/store/mutation-types'
 
 // 设置为单例模式避免多次生成影响效率
+// 待研究，暂没看懂，看着想是动态识别view下面的文件作为路由地址。按理没必要，
 window.__hasGenConstantRouterComponents = undefined
 const constantRouterComponents = () => {
   if (!window.__hasGenConstantRouterComponents) {
@@ -40,8 +41,8 @@ export const rootRouter: any = {
 // info:todo:退出账号后,换权限登录,左侧菜单变化时路由如果由/开始,会替换之前/里面的内容
 const generateAsyncRoutes = (router, menu?: Array<unknown>) => {
   // TODO:使用后端路由时,generateAsyncRoutes方法会被调用10余次,待优化
-  let menuNav: Array<any> = [];
-  let childrenNav: Array<unknown> = [];
+  let menuNav: Array<any> = []
+  let childrenNav: Array<unknown> = []
   // 后端数据, 根级树数组,  根级 PID
   const menuData = ls.get(MENU_NAV)
   if (!menuData && !menu) return
@@ -51,14 +52,14 @@ const generateAsyncRoutes = (router, menu?: Array<unknown>) => {
   } else {
     // 后端的路由数据生成antv菜单所需要的结构,
     // TODO:listToTree,menuToRouter和convertRoutes应该可以合并在一起,这样就能少一两次递归了
-    listToTree(menu, childrenNav, 0);
-    rootRouter.children = childrenNav;
-    menuNav.push(rootRouter);
+    listToTree(menu, childrenNav, 0)
+    rootRouter.children = childrenNav
+    menuNav.push(rootRouter)
     // 让 path: '/',永远重定向到第一个子菜单
     menuNav[0].redirect = '/' + menuNav[0].children[0].key
     ls.set(MENU_NAV, menuNav)
   }
-  const routers = menuToRouter(menuNav);
+  const routers = menuToRouter(menuNav)
   // routers.push(notFoundRouter);
   // 当前addRoute方法只能add一个object,之前的算法返回的是包含一个object的数组,因此,取[0]
   router.addRoute(routers[0])
@@ -67,7 +68,7 @@ const generateAsyncRoutes = (router, menu?: Array<unknown>) => {
 }
 
 export const menuToRouter = (routerMap, parent?) => {
-  return routerMap.map(item => {
+  return routerMap.map((item) => {
     const { title, show, hideChildren, hiddenHeaderContent, target, icon } = item.meta || {}
     const currentRouter: any = {
       // 如果路由设置了 path，则作为默认 path，否则 路由地址 动态拼接生成如 /dashboard/workplace
@@ -81,13 +82,14 @@ export const menuToRouter = (routerMap, parent?) => {
       // component: (() => import(`@/views/${item.component}`)),
       // meta: 页面标题, 菜单图标, 页面权限(供指令权限用，可去掉)
       meta: {
-        title: i18n.global.t(title),
+        // title: i18n.global.t(title),
+        title: title,
         icon: icon || undefined,
         // PageView用的,控制PageHeader的,暂时没用上
         hiddenHeaderContent,
         target,
-        permission: item.meta.permission,
-      },
+        permission: item.meta.permission
+      }
     }
 
     // 找不到页面文件并且不是外链
@@ -119,7 +121,7 @@ export const menuToRouter = (routerMap, parent?) => {
 }
 
 export const listToTree = (list, tree, parentId) => {
-  list.forEach(item => {
+  list.forEach((item) => {
     // 判断是否为父级菜单
     if (item.parentId === parentId) {
       const child = {
@@ -150,7 +152,7 @@ export function convertRoutes(nodes) {
     for (let i = 0; i < levelSize; i++) {
       const node = queue.shift()
       if (!node.children || !node.children.length) continue
-      node.children.forEach(child => {
+      node.children.forEach((child) => {
         // 转化相对路径
         if (child.path[0] !== '/' && !child.path.startsWith('http')) {
           // 看不懂,但是目的是把 a:{path:b}转化成a/b这种path

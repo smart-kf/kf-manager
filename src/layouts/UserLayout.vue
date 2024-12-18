@@ -1,9 +1,6 @@
 <template>
   <div id="userLayout" :class="['user-layout-wrapper', isMobile && 'mobile']">
     <div class="container">
-      <div class="user-layout-lang">
-        <select-lang class="select-lang-trigger" />
-      </div>
       <div class="user-layout-content">
         <div class="top">
           <div class="header">
@@ -31,16 +28,15 @@
 </template>
 
 <script lang="ts" setup name="UserLayout">
-import SelectLang from '@/components/SelectLang';
-import { isMobile } from '@/utils/device';
-import { onMounted, onBeforeUnmount } from 'vue';
+import { isMobile } from '@/utils/device'
+import { onMounted, onBeforeUnmount } from 'vue'
 
 onMounted(() => {
-  document.body.classList.add('userLayout');
-});
+  document.body.classList.add('userLayout')
+})
 onBeforeUnmount(() => {
-  document.body.classList.remove('userLayout');
-});
+  document.body.classList.remove('userLayout')
+})
 </script>
 
 <style lang="less" scoped>
