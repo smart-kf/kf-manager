@@ -49,5 +49,10 @@ export default [
     path: '/:path(.*)',
     name: 'NoMatch',
     component: () => import('@/views/exception/404.vue'),
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('@/views/chat/index.vue')
   }
 ] as Router[]
