@@ -20,17 +20,23 @@
   
       <!-- 消息输入区域 -->
       <div class="message-input">
-        <input v-model="newMessage" type="text" placeholder="Type your message..." />
-        <button @click="sendMessage">Send</button>
+        <a-input v-model:value="newMessage" placeholder="Type your message..." @pressEnter="sendMessage"/>
+        <button @click="sendMessage">发送</button>
       </div>
     </div>
   </template>
   
   <script>
   import { ref, onMounted, nextTick } from 'vue';
-  
+  import WebSocketClient from '@/utils/websocket.js';
+
+
   export default {
     setup() {
+
+      // ws实例
+      let wsClient
+
       // 消息对象数组
       const messages = ref([
         {
@@ -71,6 +77,8 @@
             time: currentTime,
           });
           newMessage.value = '';
+
+          wsClient.sendMessage(messageText)
   
           // 滚动到底部
           nextTick(() => {
@@ -78,12 +86,38 @@
           });
         }
       };
+
+      // 监听消息
+      
+        
   
       // 自动滚动到最新消息
       onMounted(() => {
         nextTick(() => {
           messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
         });
+
+
+        wsClient = new WebSocketClient('ws://localhost:8089', {
+            reconnectInterval: 5000,
+            heartbeatInterval: 30000,
+            heartbeatMessage: { type: 'ping' }
+        });
+
+        wsClient.onMessage((message)=>{
+            const currentTime = new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+          messages.value.push({
+            sender: 'other',
+            name: 'User 1',
+            avatar: 'https://via.placeholder.com/40',
+            text: message,
+            time: currentTime,
+          });
+            
+        })
       });
   
       return {
@@ -98,7 +132,8 @@
   
   <style scoped>
   /* 全局样式 */
-  * {
+  *
+  /* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -111,7 +146,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-  }
+  } */
   
   .chat-container {
     display: flex;
