@@ -3,7 +3,7 @@
     <template #icon>
       <SvgIcon :name="menu.meta.icon" v-if="menu.meta.icon" />
     </template>
-    <template #title>{{ $t(menu.meta.title) }}</template>
+    <template #title>{{ menu.meta.title }}</template>
     <template v-if="!menu.hideChildrenInMenu">
       <template v-for="sub in menu.children">
         <!-- 递归组件 -->
@@ -13,16 +13,16 @@
   </a-sub-menu>
   <!-- renderMenuItem -->
   <a-menu-item :key="menu.path" v-else-if="!menu.meta.hidden">
-    <template #icon>
-      <SvgIcon :name="menu.meta.icon" v-if="menu.meta.icon" />
-    </template>
-    <!-- 外部链接 -->
-    <a v-if="menu.meta.target" :href="menu.meta.target" :target="menu.meta.blank === false ? '' : '_blank'">
-      <!-- span重复了吧?这就是template的弊端,jsx才是王道 -->
-      <span>{{ $t(menu.meta.title) }}</span>
-    </a>
-    <router-link :to="filterParams(menu.path)" v-else>
-      <span>{{ $t(menu.meta.title) }}</span>
+    <template #title>{{ menu.meta.title }}</template>
+    <router-link :to="filterParams(menu.path)">
+      <div class="menu-title">
+        <!-- 放置图标组件 -->
+        <template v-if="menu.icon">
+          <component :is="menu.icon" />
+        </template>
+        <SvgIcon :name="menu.meta.icon" v-else-if="menu.meta.icon" width="22px" height="22px" />
+        <span>{{ menu.meta.title }}</span>
+      </div>
     </router-link>
   </a-menu-item>
 </template>
@@ -30,6 +30,8 @@
 import SvgIcon from '@/components/SvgIcon/index.vue'
 
 const props = defineProps(['menu'])
+console.log(props.menu)
+
 // info:todo:貌似没用
 if (props.menu.children && props.menu.hideChildrenInMenu) {
   // 把有子菜单的 并且 父菜单是要隐藏子菜单的
@@ -46,15 +48,16 @@ const filterParams = (menu) => {
 }
 </script>
 <style lang="less" scoped>
-.menuName {
-
-  svg,
-  span {
-    vertical-align: middle;
-  }
-
-  svg {
-    margin-right: 10px;
+.menu-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  span:last-child {
+    font-size: 12px;
+    font-weight: normal;
+    opacity: 1;
+    margin-inline-start: 0;
   }
 }
 </style>

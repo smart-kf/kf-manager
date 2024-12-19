@@ -1,22 +1,16 @@
 <template>
-  <a-layout :class="['layout', device]">
+  <a-layout>
     <side-menu mode="inline" :menus="menus" :theme="navTheme" :collapsed="collapsed" :collapsible="true"></side-menu>
-    <a-layout :class="[layoutMode, `content-width-${contentWidth}`]" :style="{ paddingLeft: contentPaddingLeft, minHeight: '100vh' }">
-      <!-- layout header -->
-      <!-- <global-header :mode="layoutMode" :menus="menus" :theme="navTheme" :collapsed="collapsed" :device="device" @toggle="toggle" @refresh="onRefresh" /> -->
-
-      <!-- layout content -->
+    <a-layout>
       <a-layout-content
         id="layoutContent"
         :style="{
-          height: '100%',
-          margin: '24px 24px 0',
-          paddingTop: fixedHeader ? '64px' : '0'
+          height: '100%'
         }"
       >
         <transition name="page-transition">
           <section>
-            <route-view v-if="showRouter" />
+            <route-view />
           </section>
         </transition>
       </a-layout-content>
@@ -25,11 +19,10 @@
 </template>
 
 <script lang="ts" setup name="BasicLayout">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { triggerWindowResizeEvent, isMobile, isDesktop } from '@/utils/device'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import { triggerWindowResizeEvent } from '@/utils/device'
 import RouteView from './RouteView.vue'
 import SideMenu from '@/components/Menu/SideMenu.vue'
-// import GlobalHeader from '@/components/GlobalHeader/index.vue'
 import { convertRoutes } from '@/router/generateAsyncRoutes'
 import { filteRouterPermission } from '@/router/permission'
 import { PERMISSION, SET_SIDEBAR_TYPE } from '@/store/mutation-types'
@@ -38,22 +31,11 @@ import useSiteSettings from '@/store/useSiteSettings'
 import ls from '@/utils/Storage'
 import { systemConfig } from '@/store/reactiveState'
 import { useRouter } from 'vue-router'
-import emitter from '@/utils/eventBus'
 
 const router = useRouter()
 const collapsed = ref(false)
 const menus = ref([])
-const { fixSidebar, sidebarOpened, multiTab, device, layoutMode, contentWidth, fixedHeader, navTheme, isSideMenu } = useSiteSettings()
-
-const contentPaddingLeft = computed(() => {
-  if (!fixSidebar.value || isMobile.value) {
-    return '0'
-  }
-  if (sidebarOpened.value) {
-    return '256px'
-  }
-  return '80px'
-})
+const { sidebarOpened, device, navTheme } = useSiteSettings()
 
 watch(
   () => sidebarOpened.value,
@@ -83,31 +65,11 @@ onMounted(() => {
     })
   }
 })
-
+// 切换展开菜单和收起
 const toggle = () => {
   collapsed.value = !collapsed.value
   systemConfig.commit(SET_SIDEBAR_TYPE, !collapsed.value)
   triggerWindowResizeEvent()
-}
-const paddingCalc = () => {
-  let left = ''
-  if (sidebarOpened.value) {
-    left = isDesktop.value ? '256px' : '80px'
-  } else {
-    left = (isMobile.value && '0') || (fixSidebar.value && '80px') || '0'
-  }
-  return left
-}
-const menuSelect = () => {}
-const drawerClose = () => {
-  collapsed.value = false
-}
-
-const showRouter = ref(true)
-const onRefresh = () => {
-  emitter.all.clear()
-  showRouter.value = false
-  nextTick(() => (showRouter.value = true))
 }
 </script>
 
