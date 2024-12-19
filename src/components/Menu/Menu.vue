@@ -1,6 +1,5 @@
 <template>
-  <a-menu :mode="mode" :theme="theme" :openKeys="openKeys.value" :selectedKeys="selectedKeys" @openChange="onOpenChange"
-    @click="onSelect" class="SysMenu">
+  <a-menu :mode="mode" :theme="theme" :openKeys="openKeys.value" :selectedKeys="selectedKeys" @openChange="onOpenChange" @click="onSelect" class="SysMenu">
     <template v-for="m in menu" :key="m.path">
       <RenderSubMenu :menu="m" v-if="!m.hidden" />
     </template>
@@ -73,9 +72,7 @@ const onOpenChange = (openKeysParams) => {
     return
   }
   // 非水平模式时
-  const latestOpenKey: string = openKeysParams.find(
-    (key) => /*去掉这个!则可以全部打开菜单(目前只能打开一个菜单)*/ !openKeys.value.includes(key)
-  )
+  const latestOpenKey: string = openKeysParams.find((key) => /*去掉这个!则可以全部打开菜单(目前只能打开一个菜单)*/ !openKeys.value.includes(key))
   if (!rootSubmenuKeys.value.includes(latestOpenKey)) {
     openKeys.value = openKeysParams
   } else {
@@ -106,5 +103,4 @@ const updateMenu = () => {
   props.collapsed ? (cachedOpenKeys.value = openKeysArr) : (openKeys.value = openKeysArr)
 }
 </script>
-<style lang="less">
-</style>
+<style lang="less"></style>

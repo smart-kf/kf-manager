@@ -1,5 +1,7 @@
 import { UserLayout } from '@/layouts'
+import { h } from 'vue'
 import { BasicLayout, RouteView } from '@/layouts'
+import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { type Router } from './types'
 
 // info:todo:1.如果使用服务端获取路由,path: '/',这块路由再写就会被覆盖
@@ -19,39 +21,22 @@ export default [
       {
         path: '/dashboard',
         name: 'dashboard',
-        redirect: '/dashboard/workplace',
-        component: RouteView,
-        meta: { title: 'menu.dashboard.title', icon: 'bx-analyse', keepAlive: true, permission: ['admin'] },
-        children: [
-          {
-            path: 'workplace',
-            name: 'Workplace',
-            component: () => import('@/views/Home.vue'),
-            meta: { title: 'menu.dashboard.workplace', keepAlive: true, permission: ['admin'] }
-          }
-        ]
+        meta: { title: 'dashboard', icon: 'bx-analyse', keepAlive: true, permission: ['admin'] },
+        component: () => import('@/views/Home.vue')
       },
       // account
       {
         path: '/account',
-        component: RouteView,
-        redirect: '/account/center',
         name: 'account',
-        meta: { title: 'menu.account.title', icon: 'bx-analyse', keepAlive: true },
-        children: [
-          {
-            path: '/account/center',
-            name: 'center',
-            component: () => import('@/views/account/index.vue'),
-            meta: { title: 'menu.account.center', keepAlive: true }
-          }
-        ]
+        icon: () => h(AppstoreOutlined),
+        meta: { title: 'account', keepAlive: true },
+        component: () => import('@/views/account/index.vue')
       },
       {
         path: '/chat',
         name: 'Chat',
         component: () => import('@/views/chat/index.vue'),
-        meta: { title: '聊天', keepAlive: false }
+        meta: { title: '聊天', icon: 'bx-analyse', keepAlive: false }
       }
     ]
   },
