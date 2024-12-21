@@ -9,7 +9,6 @@
 import { watch, ref } from 'vue'
 // import Logo from '@/components/tools/Logo.vue'
 import Menu from './Menu.vue'
-
 const props = defineProps({
   mode: {
     type: String,
