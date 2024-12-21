@@ -16,11 +16,7 @@
     <template #title>{{ menu.meta.title }}</template>
     <router-link :to="filterParams(menu.path)">
       <div class="menu-title">
-        <!-- 放置图标组件 -->
-        <template v-if="menu.icon">
-          <component :is="menu.icon" />
-        </template>
-        <SvgIcon :name="menu.meta.icon" v-else-if="menu.meta.icon" width="22px" height="22px" />
+        <IconFont :name="menu.meta.icon" size="20"></IconFont>
         <span>{{ menu.meta.title }}</span>
       </div>
     </router-link>
@@ -30,7 +26,6 @@
 import SvgIcon from '@/components/SvgIcon/index.vue'
 
 const props = defineProps(['menu'])
-console.log(props.menu)
 
 // info:todo:貌似没用
 if (props.menu.children && props.menu.hideChildrenInMenu) {

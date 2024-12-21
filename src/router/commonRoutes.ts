@@ -17,26 +17,47 @@ export default [
     meta: { title: 'menu.home' },
     redirect: '/dashboard',
     children: [
-      // dashboard
       {
-        path: '/dashboard',
-        name: 'dashboard',
-        meta: { title: 'dashboard', icon: 'bx-analyse', keepAlive: true, permission: ['admin'] },
-        component: () => import('@/views/Home.vue')
-      },
-      // account
-      {
-        path: '/account',
-        name: 'account',
-        icon: () => h(AppstoreOutlined),
-        meta: { title: 'account', keepAlive: true },
-        component: () => import('@/views/account/index.vue')
+        path: '/qrCode',
+        name: 'qrCode',
+        meta: { title: '二维码', icon: 'icon-erweima', keepAlive: false },
+        component: () => import('@/views/qrCode/index.vue')
       },
       {
         path: '/chat',
         name: 'Chat',
         component: () => import('@/views/chat/index.vue'),
-        meta: { title: '聊天', icon: 'bx-analyse', keepAlive: false }
+        meta: { title: '消息', icon: 'icon-xiaoxi1', keepAlive: false }
+      },
+      {
+        path: '/welcomeMsg',
+        name: 'welcomeMsg',
+        meta: { title: '欢迎语', icon: 'icon-huanyingyu', keepAlive: false },
+        component: () => import('@/views/welcomeMsg/index.vue')
+      },
+      {
+        path: '/aiReply',
+        name: 'aiReply',
+        meta: { title: '智能回复', icon: 'icon-zhinenghuifu', keepAlive: false },
+        component: () => import('@/views/aiReply/index.vue')
+      },
+      {
+        path: '/quickReply',
+        name: 'quickReply',
+        meta: { title: '快捷回复', icon: 'icon-kuaijiehuifu', keepAlive: false },
+        component: () => import('@/views/quickReply/index.vue')
+      },
+      {
+        path: '/speechCraft',
+        name: 'speechCraft',
+        meta: { title: '话术复制', icon: 'icon-fuzhi', keepAlive: false },
+        component: () => import('@/views/speech/index.vue')
+      },
+      {
+        path: '/systemSetting',
+        name: 'systemSetting',
+        meta: { title: '设置', icon: 'icon-shezhi', keepAlive: false },
+        component: () => import('@/views/systemSetting/index.vue')
       }
     ]
   },

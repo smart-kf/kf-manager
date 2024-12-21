@@ -11,8 +11,13 @@ import setupDefaultSetting from '@/utils/setupDefaultSetting'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import '@/utils/default-passive-events'
+import IconFont from '@/components/IconFont/index.vue'
 
 const app = createApp(App)
+
+app.component('IconFont', IconFont)
+
+app.use(Antd)
 app.use(Antd)
 app.use(router)
 // app.use(store)
