@@ -1,5 +1,4 @@
 import ls from '@/utils/Storage'
-import { ACCESS_TOKEN, PERMISSION, USER_INFO, MENU_NAV } from '@/store/mutation-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -9,10 +8,7 @@ dayjs.extend(timezone)
 
 // 清除token 权限，用户信息，菜单信息
 export function clearUserInfo() {
-  ls.remove(ACCESS_TOKEN)
-  ls.remove(PERMISSION)
-  ls.remove(USER_INFO)
-  ls.remove(MENU_NAV)
+  ls.clear()
 }
 
 export function timeFix() {
@@ -63,7 +59,7 @@ export function scorePassword(pass) {
   }
 
   let variationCount = 0
-  for (var check in variations) {
+  for (const check in variations) {
     variationCount += variations[check] === true ? 1 : 0
   }
   score += (variationCount - 1) * 10
@@ -72,7 +68,7 @@ export function scorePassword(pass) {
 }
 
 export const firstLetterIsUpperCase = function (str) {
-  var reg = /^[A-Z][A-z0-9]*$/
+  const reg = /^[A-Z][A-z0-9]*$/
   return reg.test(str)
 }
 
@@ -122,7 +118,7 @@ export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {
 }
 // 对象转数组
 export function objToArr(obj) {
-  let arr: any = []
+  const arr: any = []
   for (const o in obj) {
     arr.push({ label: o, txt: obj[o] })
   }

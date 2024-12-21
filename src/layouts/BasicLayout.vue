@@ -1,6 +1,6 @@
 <template>
   <a-layout>
-    <side-menu mode="inline" :menus="menus" :theme="navTheme" :collapsed="collapsed" :collapsible="true"></side-menu>
+    <side-menu mode="inline" :menus="menus" :theme="theme" :collapsed="collapsed" :collapsible="true"></side-menu>
     <a-layout>
       <a-layout-content
         id="layoutContent"
@@ -20,25 +20,21 @@
 
 <script lang="ts" setup name="BasicLayout">
 import { ref, watch, onMounted, nextTick } from 'vue'
-import { triggerWindowResizeEvent } from '@/utils/device'
 import RouteView from './RouteView.vue'
 import SideMenu from '@/components/Menu/SideMenu.vue'
 import { convertRoutes } from '@/router/generateAsyncRoutes'
 import { filteRouterPermission } from '@/router/permission'
-import { PERMISSION, SET_SIDEBAR_TYPE } from '@/store/mutation-types'
 import { cloneDeep } from 'lodash-es'
-import useSiteSettings from '@/store/useSiteSettings'
-import ls from '@/utils/Storage'
-import { systemConfig } from '@/store/reactiveState'
+import { useSystemStore } from '@/store/modules'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const collapsed = ref(false)
 const menus = ref([])
-const { sidebarOpened, device, navTheme } = useSiteSettings()
+const { sidebar, theme } = useSystemStore()
 
 watch(
-  () => sidebarOpened.value,
+  () => sidebar,
   (val) => {
     collapsed.value = !val
   }
@@ -47,12 +43,13 @@ watch(
 // created()
 // bug:TODO:克隆时报警告[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.目前还不知道解决方案
 const mainMenu = cloneDeep(router.getRoutes())
-const orginRoutes = filteRouterPermission(mainMenu, ls.get(PERMISSION))
+const orginRoutes = filteRouterPermission(mainMenu, [])
 // 相对路径转绝对路径
 // 系统菜单以/为第一级,/外面的都不显示在菜单中,但是可以跳转到该路由
 const routes = convertRoutes(orginRoutes.find((item) => item.path === '/'))
 menus.value = (routes && routes.children) || []
-collapsed.value = !sidebarOpened.value
+collapsed.value = !sidebar
+console.log(sidebar)
 
 onMounted(() => {
   const userAgent = navigator.userAgent
@@ -65,12 +62,6 @@ onMounted(() => {
     })
   }
 })
-// 切换展开菜单和收起
-const toggle = () => {
-  collapsed.value = !collapsed.value
-  systemConfig.commit(SET_SIDEBAR_TYPE, !collapsed.value)
-  triggerWindowResizeEvent()
-}
 </script>
 
 <style lang="less">

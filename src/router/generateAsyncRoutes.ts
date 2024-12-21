@@ -3,7 +3,6 @@ import i18n from '@/locales/useI18n'
 import ls from '@/utils/Storage'
 import { BasicLayout, RouteView, BlankLayout } from '@/layouts' //, BlankLayout, PageView, RouteView
 import { getRoutePages } from '@/utils/batchImportFiles'
-import { MENU_NAV } from '@/store/mutation-types'
 
 // 设置为单例模式避免多次生成影响效率
 // 待研究，暂没看懂，看着想是动态识别view下面的文件作为路由地址。按理没必要，
@@ -42,9 +41,9 @@ export const rootRouter: any = {
 const generateAsyncRoutes = (router, menu?: Array<unknown>) => {
   // TODO:使用后端路由时,generateAsyncRoutes方法会被调用10余次,待优化
   let menuNav: Array<any> = []
-  let childrenNav: Array<unknown> = []
+  const childrenNav: Array<unknown> = []
   // 后端数据, 根级树数组,  根级 PID
-  const menuData = ls.get(MENU_NAV)
+  const menuData = ls.get('MENU_NAV')
   if (!menuData && !menu) return
   // 若有缓存,则从缓存取菜单内容,然后直接生成路由
   if (menuData) {
@@ -57,7 +56,7 @@ const generateAsyncRoutes = (router, menu?: Array<unknown>) => {
     menuNav.push(rootRouter)
     // 让 path: '/',永远重定向到第一个子菜单
     menuNav[0].redirect = '/' + menuNav[0].children[0].key
-    ls.set(MENU_NAV, menuNav)
+    ls.set('MENU_NAV', menuNav)
   }
   const routers = menuToRouter(menuNav)
   // routers.push(notFoundRouter);

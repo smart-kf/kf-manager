@@ -51,6 +51,7 @@ const filterParams = (menu) => {
   span:last-child {
     font-size: 12px;
     font-weight: normal;
+    padding-top: 2px;
     opacity: 1;
     margin-inline-start: 0;
   }

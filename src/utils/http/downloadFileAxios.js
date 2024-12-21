@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
 import { message } from 'ant-design-vue'
-import { ACCESS_TOKEN, USER_INFO } from '@/store/mutation-types'
 import { baseURL } from '@/utils/util'
 
 const ContentType = {
@@ -23,8 +22,8 @@ const baseService = axios.create({
 // request interceptor
 baseService.interceptors.request.use(
   config => {
-    const token = Vue.ls.get(ACCESS_TOKEN)
-    const userinfo = Vue.ls.get(USER_INFO)
+    const token = Vue.ls.get('access-token')
+    const userinfo = Vue.ls.get('userInfo')
     if (token) {
       config.headers['token'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改
     }

@@ -81,14 +81,13 @@ import { encryptByMd5 } from '@/utils/encrypt'
 import { ref, reactive, UnwrapRef, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Form } from 'ant-design-vue'
-import { loginSuccess, requestFailed } from './helper'
 import { useRouter } from 'vue-router'
 import { MobileOutlined, MailOutlined, AlipayCircleOutlined, TaobaoCircleOutlined, WeiboCircleOutlined, UserOutlined, LockOutlined } from '@ant-design/icons-vue'
 import * as api from './service'
+import { loginSuccess, requestFailed } from './helper'
 import { FormState } from './types'
 import config from '@/config/defaultSettings'
 import generateAsyncRoutes from '@/router/generateAsyncRoutes'
-import { useGetCaptcha } from './helper'
 
 const useForm = Form.useForm
 const { t } = useI18n()

@@ -1,13 +1,13 @@
 <template>
-  <a-layout-sider :class="['sider', 'shadow', theme]" width="256px" :collapsible="collapsible" v-model:collapsed="sideMenuCollapsed" :trigger="null">
-    <!-- <logo /> -->
+  <a-layout-sider :class="['sider', 'shadow', theme]" width="72px" :collapsible="collapsible" v-model:collapsed="sideMenuCollapsed" :trigger="null">
+    <UserMenu></UserMenu>
     <Menu :collapsed="collapsed" :menu="menus" :theme="theme" :mode="mode" @select="onSelect"></Menu>
   </a-layout-sider>
 </template>
 
 <script lang="ts" setup name="SideMenu">
 import { watch, ref } from 'vue'
-// import Logo from '@/components/tools/Logo.vue'
+import UserMenu from '@/components/tools/UserMenu/index.vue'
 import Menu from './Menu.vue'
 const props = defineProps({
   mode: {
