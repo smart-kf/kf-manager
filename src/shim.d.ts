@@ -10,3 +10,8 @@ declare interface Window {
   pagetitle: string
   __hasGenConstantRouterComponents: any
 }
+
+declare module '*.png' {
+  const content: any
+  export default content
+}

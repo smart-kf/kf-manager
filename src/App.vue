@@ -3,7 +3,7 @@
     :locale="lang[locale]"
     :theme="{
       token: {
-        colorPrimary: systemConfig.state.color,
+        colorPrimary: systemConfig.color,
         borderRadius: 2
       }
     }"
@@ -22,10 +22,11 @@ import emitter from '@/utils/eventBus'
 import { useRouter } from 'vue-router'
 import { Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
-import { systemConfig } from '@/store/reactiveState'
+import { useSystemStore } from '@/store/modules'
 
 const { locale } = useI18n()
 const lang = { 'en-US': en_US, 'zh-CN': zh_CN }
+const systemConfig = useSystemStore()
 
 window.onresize = setDeviceType
 setDeviceType()
@@ -51,5 +52,6 @@ onErrorCaptured((err, instance, info) => {
 </script>
 
 <style>
+/* 注入阿里图标 */
 @import url('//at.alicdn.com/t/c/font_4789837_4550id1h8co.css');
 </style>

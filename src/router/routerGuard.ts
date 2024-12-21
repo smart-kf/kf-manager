@@ -1,6 +1,5 @@
 import NProgress from 'nprogress' // progress bar
 import '@/components/NProgress/nprogress.less' // progress bar custom style
-import { ACCESS_TOKEN, PERMISSION } from '@/store/mutation-types'
 import { hasPermission } from './permission'
 import ls from '@/utils/Storage'
 import { setDocumentTitle } from '@/utils/domUtil'
@@ -10,22 +9,22 @@ import { notification } from 'ant-design-vue'
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['login', 'register', 'registerResult'] // 不进行拦截的路由名称集合
-const defaultRoutePath = '/dashboard/workplace'
+const defaultRoutePath = '/qrCode'
 
 export const setupBeforeEach = (router: Router) => {
   router.beforeEach((to, from, next) => {
     NProgress.start() // 加载进度条
     setDocumentTitle(to)
-    console.log(to)
+    console.log(ls.get('ACCESS_TOKEN'))
+    const token = 'xxx'
 
-    if (ls.get(ACCESS_TOKEN) && ls.get(PERMISSION)) {
+    if (token) {
       /* has token */
       if (to.path === '/user/login') {
         next({ path: defaultRoutePath })
         NProgress.done()
       } else {
-        const permission = ls.get(PERMISSION)
-        const canAccess = hasPermission(permission, to)
+        const canAccess = true
         if (canAccess) {
           next()
         } else {
