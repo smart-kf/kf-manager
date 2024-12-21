@@ -20,18 +20,29 @@
   
       <!-- 消息输入区域 -->
       <div class="message-input">
-        <a-input v-model:value="newMessage" placeholder="Type your message..." @pressEnter="sendMessage"/>
-        <button @click="sendMessage">发送</button>
+        <div class="tools">
+             <EmojiSelect @onChange="onEmojiChange"></EmojiSelect>
+             <FileImageOutlined @click="selectFile('image')" class="emoji-text"/>
+             <VideoCameraOutlined @click="selectFile('video')" class="emoji-text"/>
+        </div>
+        <a-textarea v-model:value="newMessage" placeholder="Type your message..." :bordered="false" @pressEnter="sendMessage"/>
       </div>
+
+      
     </div>
   </template>
   
   <script>
   import { ref, onMounted, nextTick } from 'vue';
   import WebSocketClient from '@/utils/websocket.js';
+  import EmojiSelect from '@/components/EmojiSelect/index.vue'
+  import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
 
 
   export default {
+    components: {
+        EmojiSelect,FileImageOutlined,VideoCameraOutlined
+    },
     setup() {
 
       // ws实例
@@ -87,7 +98,43 @@
         }
       };
 
-      // 监听消息
+
+      // 切换表情包选择框
+    const onEmojiChange = (emoji) => {
+        newMessage.value += emoji.i;
+    };
+
+    
+
+    // 选择文件
+    const selectFile = (type) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = type === 'image' ? 'image/*' : 'video/*';
+      input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            //TODO 上传至服务器，得到url后展示在消息框中
+        //   const currentTime = new Date().toLocaleTimeString([], {
+        //     hour: '2-digit',
+        //     minute: '2-digit',
+        //   });
+        //   messages.value.push({
+        //     sender: 'me',
+        //     name: 'You',
+        //     avatar: 'https://via.placeholder.com/40',
+        //     text: `Sent a ${type}: ${file.name}`,
+        //     time: currentTime,
+        //   });
+
+          // 滚动到底部
+          nextTick(() => {
+            messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+          });
+        }
+      };
+      input.click();
+    };
       
         
   
@@ -97,7 +144,7 @@
           messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
         });
 
-
+        // 监听消息
         wsClient = new WebSocketClient('ws://localhost:8089', {
             reconnectInterval: 5000,
             heartbeatInterval: 30000,
@@ -125,6 +172,8 @@
         newMessage,
         sendMessage,
         messageDisplay,
+        selectFile,
+        onEmojiChange
       };
     },
   };
@@ -223,34 +272,42 @@
   
   /* 消息输入区域 */
   .message-input {
-    display: flex;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+  min-height: 200px;
+}
+
+.message-input .tools {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.message-input .ant-input {
+  flex: 1;
+  padding: 10px;
+  font-size: 1em;
+  outline: none;
+}
+
+.message-input button {
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.emoji-text{
     padding: 10px;
-    border-top: 1px solid #ddd;
-    background: #fff;
-  }
-  
-  .message-input input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    font-size: 1em;
-    outline: none;
-  }
-  
-  .message-input button {
-    margin-left: 10px;
-    padding: 10px 20px;
     border: none;
-    border-radius: 20px;
-    background: #007bff;
-    color: #fff;
-    font-size: 1em;
+    background: transparent;
+    font-size: 16px;
     cursor: pointer;
-  }
-  
-  .message-input button:hover {
-    background: #0056b3;
-  }
+}
   </style>
   
