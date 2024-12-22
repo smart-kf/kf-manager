@@ -1,24 +1,28 @@
 <template>
-    <div class="chat-contain">
+    <div class="chat-container">
         <ChatList @onChangeChat="onChangeChat"/>
-        <ChatRoom/>
+        <ChatRoom :toUser="toUser"/>
     </div>
 </template>
 <script setup>
+import { ref } from 'vue'
 import ChatList from './ChatList.vue'
 import ChatRoom from './ChatRoom.vue'
 
+const toUser = ref()
 
 const onChangeChat = (chat)=>{
     //TODO 聊天人？
-    console.log();
+    console.log('toUser:',chat);
+    toUser.value = chat
     
 }
 </script>
 
 <style lang="less" scoped>
-.chat-contain{
+.chat-container{
     display: flex;
     justify-content: flex-start;
+    height: 100vh;
 }
 </style>

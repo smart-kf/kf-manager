@@ -1,5 +1,20 @@
 <template>
     <div class="chatroom-contain">
+      <!-- 消息来源 -->
+      <div class="info-container">
+        <!-- 第一行: 昵称和IP -->
+        <div class="info-row">
+        <span class="nickname">{{ toUser.externalUser.nickName }}</span>
+        <span class="ip">{{ toUser.ip || '0.0.0.0' }}</span>
+        </div>
+        <!-- 第二行: 系统类型、系统版本、网络类型 -->
+        <div class="info-row">
+        <span class="system-type">系统类型：{{ clientInfo.system }}</span>
+        <span class="system-version">系统版本：{{ clientInfo.system }}</span>
+        <span class="network-type">网络类型：{{ clientInfo.networkType }}</span>
+        </div>
+    </div>
+
       <!-- 消息展示区域 -->
       <div class="message-display" ref="messageDisplay">
         <div
@@ -33,7 +48,7 @@
   </template>
   
 <script setup>
-import { ref, onMounted, nextTick, defineProps } from 'vue';
+import { ref, onMounted, nextTick, defineProps, toRefs } from 'vue';
 import WebSocketClient from '@/utils/websocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
@@ -42,11 +57,35 @@ const props = defineProps({
     toUser:{
         type: Object,
         default: ()=>({
-            id:'',
-            name: ''
+                externalUser: {
+                    nickName: '',
+                    avatar: '',
+                    isOnline: true,
+                },
+                lastMessage: {
+                    from: '',
+                    fromType: '',
+                    to: '',
+                    toType: '',
+                    content: {
+                        type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
+                        text: {
+                            content: 'Hey, how are you?'
+                        }
+                    }
+                },
         })
     }
 })
+
+
+const { toUser } = toRefs(props)
+
+const clientInfo = ref({
+    system: 'Unknown',
+    networkType: 'Unknown'
+})
+
 
       // ws实例
       let wsClient
@@ -139,10 +178,25 @@ const props = defineProps({
       input.click();
     };
       
+// 获取客户端信息
+const getClientInfo = ()=>{
+    // 获取系统信息
+    const userAgent = navigator.userAgent;
+    if (/Windows NT/i.test(userAgent)) clientInfo.value.system = "Windows";
+    else if (/Mac OS/i.test(userAgent)) clientInfo.value.system = "macOS";
+    else if (/Android/i.test(userAgent)) clientInfo.value.system = "Android";
+    else if (/iPhone|iPad|iPod/i.test(userAgent)) clientInfo.value.system = "iOS";
+
+    // 获取网络类型
+    const networkType = navigator.connection?.effectiveType || "Unknown";
+    clientInfo.value.networkType = networkType
+}
         
   
       // 自动滚动到最新消息
       onMounted(() => {
+        getClientInfo()
+
         nextTick(() => {
           messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
         });
@@ -173,18 +227,24 @@ const props = defineProps({
      
   </script>
   
-  <style scoped>
+  <style lang="less" scoped>
   
   .chatroom-contain {
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    width: 100%;
-    max-width: 600px;
-    height: 90vh;
     background: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+  }
+
+  .to-user{
+    width: 100%;
+    height: 53px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   /* 消息展示区域 */
@@ -285,6 +345,45 @@ const props = defineProps({
     background: transparent;
     font-size: 16px;
     cursor: pointer;
+}
+
+
+.info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 53px;
+  padding: 5px 10px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  color: #333;
+
+  .info-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    }
+
+    .nickname {
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    .ip {
+    color: #555;
+    }
+}
+
+
+
+.system-type, .system-version, .network-type {
+  margin-right: 10px;
+  color: #666;
+}
+
+.system-type:last-child, .system-version:last-child, .network-type:last-child {
+  margin-right: 0;
 }
   </style>
   
