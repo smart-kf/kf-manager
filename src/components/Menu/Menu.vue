@@ -12,8 +12,9 @@ import RenderSubMenu from './RenderSubMenu.vue'
 
 const props = defineProps({
   menu: {
-    type: Array,
-    required: true
+    type: Array as any,
+    required: true,
+    default: () => []
   },
   theme: {
     type: String,

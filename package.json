@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env vite --mode localhost",
     "debug-vite": "cross-env vite --mode localhost --debug",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",

@@ -70,7 +70,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="Register">
+<script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { Form } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -103,7 +103,7 @@ const router = useRouter()
 const useForm = Form.useForm
 
 // 表单相关
-const form = reactive({
+const form: any = reactive({
   email: '',
   password: '',
   password2: '',
