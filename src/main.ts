@@ -12,7 +12,7 @@ import 'ant-design-vue/dist/reset.css'
 import '@/utils/default-passive-events'
 import IconFont from '@/components/IconFont/index.vue'
 
-import directives from '@/directives/index';
+import directives from '@/directives/index'
 
 const app = createApp(App)
 //  注册图标组件
@@ -25,4 +25,4 @@ app.use(i18n)
 app.use(directives)
 app.mount('#app')
 
-window.env = import.meta.env.MODE
+window.env = (import.meta as any).env.MODE

@@ -88,6 +88,7 @@ import { loginSuccess, requestFailed } from './helper'
 import { FormState } from './types'
 import config from '@/config/defaultSettings'
 import generateAsyncRoutes from '@/router/generateAsyncRoutes'
+import { useGetCaptcha } from './helper'
 
 const useForm = Form.useForm
 const { t } = useI18n()

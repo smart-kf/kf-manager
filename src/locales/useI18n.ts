@@ -24,8 +24,8 @@ import { genLangs } from '@/utils/batchImportFiles'
 // const cn = { ...cnU, ...cnV, ...cnC }
 
 const includePath = ['locales', 'views', 'components']
-let en = import.meta.glob('/src/**/en.ts', { eager: true })
-let cn = import.meta.glob('/src/**/cn.ts', { eager: true })
+let en = (import.meta as any).glob('/src/**/en.ts', { eager: true })
+let cn = (import.meta as any).glob('/src/**/cn.ts', { eager: true })
 
 en = genLangs(en, includePath)
 cn = genLangs(cn, includePath)

@@ -64,7 +64,7 @@ export function scorePassword(pass) {
   }
   score += (variationCount - 1) * 10
 
-  return parseInt(score)
+  return parseInt(score + '')
 }
 
 export const firstLetterIsUpperCase = function (str) {
@@ -109,7 +109,7 @@ export const getWeek = (week: number, useZhou) => {
 }
 
 const sitUrl = 'xxxxx'
-export const isDev = import.meta.env.DEV
+export const isDev = (import.meta as any).env.DEV
 export const baseURL = isDev ? '/' : '生产地址'
 
 export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {

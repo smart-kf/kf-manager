@@ -2,29 +2,32 @@ import { type LangFile, type I18nMsg, type StoreFile } from './types'
 import { firstLetterIsUpperCase } from './util'
 
 export function genLangs(module: Record<string, any>, include: Array<string> | null, exclude?: string) {
-  const obj = {};
+  const obj = {}
   Object.keys(module).forEach((item) => {
-    const content: LangFile = module[item].default;
+    const content: LangFile = module[item].default
     if (!content) {
       throw new Error('Please export default in ' + item)
     }
     let path
     if (include?.length) {
-      path = item.replace(/^\/src\//, '');
-      include?.forEach(e => {
+      path = item.replace(/^\/src\//, '')
+      include?.forEach((e) => {
         path = path.replace(`${e}/`, '')
       })
     } else {
-      path = item.replace(/^\.\.\//, '').replace(/^\.\//, '').replace(`${exclude}/`, '');
+      path = item
+        .replace(/^\.\.\//, '')
+        .replace(/^\.\//, '')
+        .replace(`${exclude}/`, '')
     }
-    path = path.replace(/\/lang/, '').split('.')[0];
+    path = path.replace(/\/lang/, '').split('.')[0]
     const names = path.split('/')
-    names.pop() as string;
+    names.pop() as string
     // 国际化文件中如果没有a.b.c这样的key就不需要写replaceDot(content),直接写content就行
     // replaceDot的作用就是变a.b.c:1为a:{b:{c:1}},内容多了的话会有性能损耗的
     reduceArr(obj, names, replaceDot(content))
-  });
-  return obj;
+  })
+  return obj
 }
 
 // 数组生成obj,可递归
@@ -44,7 +47,7 @@ function reduceArr(o, arr, cb) {
       }
       return total[val]
     }
-    return (total[val] || (total[val] = {}))
+    return total[val] || (total[val] = {})
   }, o)
 }
 
@@ -63,7 +66,7 @@ function replaceDot(c: LangFile) {
 }
 
 export const getRoutePages = () => {
-  const pages = import.meta.glob('/src/views/**/*.vue', { import: 'default', eager: true })
+  const pages = (import.meta as any).glob('/src/views/**/*.vue', { import: 'default', eager: true })
   const files = {}
   for (let p in pages) {
     const name = getFileName(p)
@@ -96,15 +99,15 @@ const getFileName = (path: string) => {
 }
 
 export function genStore() {
-  const module = import.meta.glob('/src/**/*.store.ts', { eager: true })
-  const obj = {};
+  const module = (import.meta as any).glob('/src/**/*.store.ts', { eager: true })
+  const obj = {}
   Object.keys(module).forEach((item) => {
     const name = item.match(/(?<=\/)[a-zA-Z]+(?=\.)/g)![0]
-    const content: StoreFile = module[item].default;
+    const content: StoreFile = module[item].default
     if (!content) {
       throw new Error('Please export default in ' + item)
     }
     Object.assign(obj, { [name]: content })
-  });
-  return obj;
+  })
+  return obj
 }
