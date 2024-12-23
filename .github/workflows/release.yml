@@ -56,9 +56,9 @@ jobs:
       - name: Create dist archive
         run: |
           tar -czvf dist.tar.gz ./dist  # 将 dist 目录压缩为 dist.tar.gz
-      
-      - name: Release
-        uses: fnkr/github-action-ghr@v1
-        env:
+          
+      - uses: ncipollo/release-action@v1
+        name: Release
+        with:
+          artifacts: "release.tar.gz,foo/*.txt"
           bodyFile: ./dist.tar.gz
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
