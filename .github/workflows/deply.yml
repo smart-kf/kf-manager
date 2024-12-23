@@ -37,9 +37,6 @@ jobs:
           cache: yarn # 或 pnpm / yarn
       # - uses: pnpm/action-setup@v3 # 如果使用
       # - uses: oven-sh/setup-bun@v1 # 如果使用 Bun，请取消注释
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
       - name: Install dependencies
         run: yarn install # 或 pnpm install / yarn install / bun install
       - name: Build
