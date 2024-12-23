@@ -24,6 +24,8 @@ import { Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useSystemStore } from '@/store/modules'
 
+console.log(import.meta.env.VITE_BASE_URL)
+
 const { locale } = useI18n()
 const lang = { 'en-US': en_US, 'zh-CN': zh_CN }
 const systemConfig = useSystemStore()

@@ -5,7 +5,6 @@ import ls from '@/utils/Storage'
 import emitter from '@/utils/eventBus'
 
 const ContentType = {
-  urlencoded: 'application/x-www-form-urlencoded;charset=UTF-8',
   json: 'application/json',
   formData: 'multipart/form-data'
 }
