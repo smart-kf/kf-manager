@@ -60,6 +60,5 @@ jobs:
       - name: Release
         uses: fnkr/github-action-ghr@v1
         env:
-          GHR_COMPRESS: gz
-          GHR_PATH: dist.tar.gz
+          bodyFile: ./dist.tar.gz
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
