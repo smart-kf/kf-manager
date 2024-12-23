@@ -57,8 +57,7 @@ jobs:
         run: |
           tar -czvf dist.tar.gz ./dist  # 将 dist 目录压缩为 dist.tar.gz
           
-      - uses: ncipollo/release-action@v1
-        name: Release
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: "release.tar.gz,foo/*.txt"
-          bodyFile: ./dist.tar.gz
+          files: dist.tar.gz
