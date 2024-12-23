@@ -14,9 +14,8 @@ const defaultRoutePath = '/qrCode'
 export const setupBeforeEach = (router: Router) => {
   router.beforeEach((to, from, next) => {
     NProgress.start() // 加载进度条
-    setDocumentTitle(to)
-    console.log(ls.get('ACCESS_TOKEN'))
-    const token = 'xxx'
+    setDocumentTitle(to) // 设置页面标题
+    const token = ''
 
     if (token) {
       /* has token */
