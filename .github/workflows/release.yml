@@ -61,10 +61,21 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist.tar.gz
+
+      - name: Send Curl Request
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "asset_url": "'"${{ steps.release.outputs.upload_url }}"'",
+            "tag": "'"${TAG_NAME}"'",
+            "repo": "'"${REPO_NAME}"'"
+          }' https://ci.smartkf.top/release
       
       - name: Deploy
         run: |
-          REPO_NAME=${{ github.repository }}
           TAG_NAME=$(git describe --tags --abbrev=0)
-          echo "Release URL: ${{ steps.release.outputs.upload_url }}"
-          curl -XPOST -d '{"asset_url": "${{ steps.release.outputs.upload_url }}", "tag": "$TAG_NAME", "repo": "$REPO_NAME"}' https://ci.smartkf.top/release
+          REPO_NAME=${{ github.repository }}
+          ASSET_URL=${{ steps.release.outputs.upload_url }}
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "tag": "'"${TAG_NAME}"'",
+            "repo": "'"${REPO_NAME}"'"
+          }' https://ci.smartkf.top/release
