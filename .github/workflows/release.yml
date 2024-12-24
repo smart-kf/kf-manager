@@ -67,4 +67,4 @@ jobs:
           REPO_NAME=${{ github.repository }}
           TAG_NAME=$(git describe --tags --abbrev=0)
           echo "Release URL: ${{ steps.release.outputs.upload_url }}"
-          curl -x POST -d '{"asset_url": "${{ steps.release.outputs.upload_url }}", "tag": "$TAG_NAME", "repo": "$REPO_NAME"}' https://ci.smartkf.top/release
+          curl -XPOST -d '{"asset_url": "${{ steps.release.outputs.upload_url }}", "tag": "$TAG_NAME", "repo": "$REPO_NAME"}' https://ci.smartkf.top/release
