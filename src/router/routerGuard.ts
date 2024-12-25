@@ -15,7 +15,7 @@ export const setupBeforeEach = (router: Router) => {
   router.beforeEach((to, from, next) => {
     NProgress.start() // 加载进度条
     setDocumentTitle(to) // 设置页面标题
-    const token = ''
+    const token = 'xxx'
 
     if (token) {
       /* has token */

@@ -12,7 +12,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest'
   },
-  'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+  // 'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
   'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
   'space-before-function-paren': ['error', 'never'],
   //在rules中添加自定义规则
