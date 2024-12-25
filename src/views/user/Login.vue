@@ -57,27 +57,15 @@ import { ref, reactive, UnwrapRef, onMounted } from 'vue'
 import { Form } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { MobileOutlined, MailOutlined, UserOutlined, LockOutlined } from '@ant-design/icons-vue'
-import * as api from './service'
 import { loginSuccess, requestFailed } from './helper'
 import { FormState } from './types'
 import config from '@/config/defaultSettings'
 import generateAsyncRoutes from '@/router/generateAsyncRoutes'
 import { useGetCaptcha } from './helper'
+import { UserApi } from '@/webapi/index'
 
 const useForm = Form.useForm
 const router = useRouter()
-
-onMounted(() => {
-  api
-    .get2step()
-    .then((res) => {
-      requiredTwoStepCaptcha.value = res.result.stepCode
-    })
-    .catch(() => {
-      requiredTwoStepCaptcha.value = 0
-    })
-  requiredTwoStepCaptcha.value = 1
-})
 
 const state = reactive({
   time: 60,
@@ -117,36 +105,6 @@ const { validate, validateInfos } = useForm(formRef, rulesRef)
 const isLoginError = ref(false)
 const handleSubmit = (e: Event) => {
   e.preventDefault()
-  state.loginBtn = true
-  const validateFieldsKey = customActiveKey.value === 'tab1' ? ['username', 'password'] : ['mobile', 'captcha']
-
-  validate(validateFieldsKey)
-    .then(async () => {
-      formRef.password = encryptByMd5(formRef.password)
-      const res = await api.userLogin(formRef)
-      if (res) {
-        // mock用,可删
-        if (res.code === 403) {
-          isLoginError.value = true
-          formRef.password = ''
-          state.loginBtn = false
-          return
-        }
-        if (config.useAsyncRouter) {
-          generateAsyncRoutes(router, res.menu)
-        }
-        loginSuccess(res, router)
-        isLoginError.value = false
-      } else {
-        // requestFailed(res)
-        isLoginError.value = true
-        formRef.password = ''
-      }
-      state.loginBtn = false
-    })
-    .catch((e) => {
-      state.loginBtn = false
-    })
 }
 // #endregion
 
@@ -169,17 +127,25 @@ const stepCaptchaVisible = ref<boolean>(false)
 const stepCaptchaSuccess = (res) => {
   loginSuccess(res, router)
 }
-const stepCaptchaCancel = () => {
-  api.logout().then(() => {
-    state.loginBtn = false
-    stepCaptchaVisible.value = false
-  })
+
+// 初始化信息
+const initData = () => {
+  // getCaptchaId()
 }
+const getCaptchaId = async () => {
+  let res = await UserApi.getCaptchaId()
+  console.log(res)
+}
+
+onMounted(() => {
+  initData()
+})
+
 //#endregion
 </script>
 
 <style lang="less" scoped>
-@import '../../style/index.less';
+@import '@/style/index.less';
 
 .user-layout-login {
   label {

@@ -5,7 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-import { logout } from '@/views/user/service'
 import { Modal } from 'ant-design-vue'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { useUserStore } from '@/store/modules'
@@ -14,19 +13,13 @@ import { clearUserInfo } from '@/utils/util'
 
 const router = useRouter()
 const { userInfo }: any = useUserStore()
-console.log(userInfo)
 
 // 登出
 const handleLogout = () => {
   Modal.confirm({
     title: '提示',
     content: '退出登录',
-    onOk: () => {
-      logout().then((res) => {
-        clearUserInfo()
-        router.push({ path: '/user/login' })
-      })
-    },
+    onOk: () => {},
     onCancel() {}
   })
 }
