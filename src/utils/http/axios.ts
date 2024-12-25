@@ -3,33 +3,29 @@ import { message } from 'ant-design-vue'
 import { baseURL } from '@/utils/util'
 import ls from '@/utils/Storage'
 import emitter from '@/utils/eventBus'
+const whiteApiList = []
 
 const ContentType = {
-  urlencoded: 'application/x-www-form-urlencoded;charset=UTF-8',
   json: 'application/json',
   formData: 'multipart/form-data'
 }
 
 // 创建 axios 实例   withCredentials: true,
 const baseService = axios.create({
-  // baseURL,
+  baseURL,
   timeout: 60000,
   responseType: 'json',
+  withCredentials: true,
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   }
 })
-
 // request interceptor
 baseService.interceptors.request.use(
   (config) => {
     const token = ls.get('access-token')
-    const userinfo = ls.get('userInfo')
     if (token) {
-      config.headers['token'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改
-    }
-    if (userinfo) {
-      config.headers['username'] = userinfo.username // 让每个请求携带自定义 token 请根据实际情况自行修改
+      config.headers['Authorization'] = 'Bearer ' + token // 让每个请求携带自定义 token 请根据实际情况自行修改
     }
     config.headers['Content-Type'] = ContentType[config.data instanceof FormData ? 'formData' : 'json']
     return config

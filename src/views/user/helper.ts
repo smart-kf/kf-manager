@@ -2,7 +2,6 @@ import { timeFix } from '@/utils/util'
 import ls from '@/utils/Storage'
 import { message, notification } from 'ant-design-vue'
 import { Router } from 'vue-router'
-import { getSmsCaptcha } from './service'
 
 export const loginSuccess = (res, router: Router) => {
   // 延迟 1 秒显示欢迎信息
@@ -41,21 +40,5 @@ export const useGetCaptcha = (e, validate, state, form, registerBtn) => {
     }, 1000)
 
     message.loading('验证码发送中..', 1)
-
-    getSmsCaptcha({ mobile: form.mobile })
-      .then((res) => {
-        notification['success']({
-          message: '提示',
-          description: '验证码获取成功，您的验证码为：' + res.result.captcha,
-          duration: 8
-        })
-      })
-      .catch((err) => {
-        clearInterval(interval)
-        state.time = 60
-        state.smsSendBtn = false
-        requestFailed(err)
-        registerBtn && (registerBtn.value = false)
-      })
   })
 }

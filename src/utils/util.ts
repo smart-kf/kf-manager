@@ -108,9 +108,10 @@ export const getWeek = (week: number, useZhou) => {
   return useZhou ? '周' : '星期' + txt
 }
 
-const sitUrl = 'xxxxx'
-export const isDev = (import.meta as any).env.DEV
-export const baseURL = isDev ? '/' : '生产地址'
+export const isDev = (import.meta as any).env.VITE_DEV
+console.log(isDev)
+
+export const baseURL = isDev ? '/api' : (import.meta as any).env.VITE_BASE_URL
 
 export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {
   if (!date) return null

@@ -77,5 +77,9 @@
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.21"
-  }
+  },
+   "browserslist": [
+    "Android >= 4",
+    "ios >= 8"
+  ]
 }
