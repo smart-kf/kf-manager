@@ -30,7 +30,7 @@ export const setDocumentTitle = function (to) {
 }
 
 export const setDocumentTitleForLangChange = () => {
-  document.title = window.pagetitle || config.title
+  document.title = (window.pagetitle ? window.pagetitle + '|' : '') + config.title
 }
 
 export const domTitle = config.title
