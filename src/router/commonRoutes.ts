@@ -70,17 +70,7 @@ export default [
         path: 'login',
         name: 'login',
         component: () => import(/* webpackChunkName: "user" */ '@/views/user/Login.vue'),
-        meta: { title: 'user.login.signup' }
-      },
-      {
-        path: 'register',
-        name: 'register',
-        component: () => import(/* webpackChunkName: "user" */ '@/views/user/Register.vue')
-      },
-      {
-        path: 'registerResult',
-        name: 'registerResult',
-        component: () => import(/* webpackChunkName: "user" */ '@/views/user/RegisterResult.vue')
+        meta: { title: '登录' }
       },
       {
         path: 'recover',
