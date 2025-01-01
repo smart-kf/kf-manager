@@ -14,6 +14,7 @@ import IconFont from '@/components/IconFont/index.vue'
 
 import directives from '@/directives/index'
 
+console.log(import.meta.env)
 const app = createApp(App)
 //  注册图标组件
 app.component('IconFont', IconFont)

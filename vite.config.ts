@@ -10,17 +10,22 @@ import vueSetupExtend from 'vite-plugin-vue-setup-extend'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 const lifecycle = process.env.npm_lifecycle_event
+
 export default defineConfig(({ mode }) => {
   return {
     server: {
-      port: 8080
+      port: 8080,
+      proxy: {
+        '/api': {
+          target: 'https://api.smartkf.top/', // 本地调试
+          changeOrigin: true
+          // rewrite: (path)=>path.replace(/^\/api/,'')
+        }
+      }
     },
     // 向import.meta.env注入变量,无法注入全局windows,只能注入import.meta.env中
-    // 'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE)
+    // 'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE),
     // https://cn.vitejs.dev/config/shared-options.html#envprefix
-    define: {
-      'import.meta.env.APP_VERSION': JSON.stringify('3.0.0')
-    },
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 5000,
@@ -28,7 +33,7 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           // 生产环境时移除console.log调试代码
-          drop_console: true,
+          drop_console: false,
           drop_debugger: true
         }
       },

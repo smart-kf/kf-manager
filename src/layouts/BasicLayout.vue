@@ -49,7 +49,6 @@ const orginRoutes = filteRouterPermission(mainMenu, [])
 const routes = convertRoutes(orginRoutes.find((item) => item.path === '/'))
 menus.value = (routes && routes.children) || []
 collapsed.value = !sidebar
-console.log(sidebar)
 
 onMounted(() => {
   const userAgent = navigator.userAgent

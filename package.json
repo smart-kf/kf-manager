@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env vite --mode localhost",
     "debug-vite": "cross-env vite --mode localhost --debug",
-    "build": "vite build",
+    "build": "cross-env vite build --mode production",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
@@ -77,5 +77,9 @@
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.21"
-  }
+  },
+   "browserslist": [
+    "Android >= 4",
+    "ios >= 8"
+  ]
 }

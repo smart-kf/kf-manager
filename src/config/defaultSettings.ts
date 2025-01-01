@@ -21,8 +21,8 @@ export default {
   darkMode: false,
   // #endregion
 
-  primaryColor: '#1677ff', // ant design 默认主颜色(在node_modules/ant-design-vue/style/color/colors.less中@blue-base变量定义,实际上@primary-color = @blue-6 = @blue-base,禁止套娃,手动狗头)
-  title: '',
+  primaryColor: '#599cf8', // ant design 默认主颜色(在node_modules/ant-design-vue/style/color/colors.less中@blue-base变量定义,实际上@primary-color = @blue-6 = @blue-base,禁止套娃,手动狗头)
+  title: '云客服',
   // pwa: false,
   // iconfontUrl: '',
   storage: {
