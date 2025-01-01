@@ -10,7 +10,7 @@ export const useSystemStore = defineStore('system', {
     fixedHeader: false,
     fixSiderbar: false,
     autoHideHeader: false,
-    color: '#1677ff', //主题颜色
+    color: '#599cf8', //主题颜色
     weak: false,
     gray: false,
     multiTab: false,

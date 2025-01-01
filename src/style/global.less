@@ -656,5 +656,16 @@
   box-sizing: border-box;
   background: #ffffff;
   height: 100vh;
+  overflow: auto;
+}
+.green-btn{
+  background-color: #7ec051;
+  &:not(:disabled):hover{
+    background-color: #7ec051!important;
+    opacity: 0.9;
+  }
+  &:not(:disabled):active {
+    background-color: #4d7e2b!important;
+  }
 }
 @color-primary: #519be0;
