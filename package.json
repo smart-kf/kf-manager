@@ -41,7 +41,8 @@
     "vue-i18n": "^9.13.1",
     "vue-router": "^4.3.3",
     "vue3-emoji-picker": "^1.1.8",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "wangeditor": "^4.7.15"
   },
   "devDependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
@@ -78,7 +79,7 @@
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.21"
   },
-   "browserslist": [
+  "browserslist": [
     "Android >= 4",
     "ios >= 8"
   ]
