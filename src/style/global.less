@@ -658,6 +658,7 @@
   height: 100vh;
   overflow: auto;
 }
+// 绿色按钮
 .green-btn{
   background-color: #7ec051;
   &:not(:disabled):hover{
@@ -666,6 +667,14 @@
   }
   &:not(:disabled):active {
     background-color: #4d7e2b!important;
+  }
+}
+// 表格带图标的操作按钮
+.table-link-action{
+  color: @primary-color;
+  cursor: pointer;
+  &:active,&:hover{
+    opacity: 0.9;
   }
 }
 @color-primary: #519be0;
