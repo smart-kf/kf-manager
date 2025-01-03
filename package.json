@@ -25,6 +25,7 @@
     "@ant-design/icons-vue": "^7.0.1",
     "@antv/g2plot": "^2.4.32",
     "@vueuse/core": "^10.11.0",
+    "@wangeditor/editor-for-vue": "^1.0.2",
     "ant-design-vue": "^4.2.3",
     "axios": "^1.7.3",
     "crypto-js": "^4.2.0",
