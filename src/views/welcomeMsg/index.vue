@@ -28,11 +28,9 @@
         <template v-if="column.dataIndex === 'status'">
           <a-switch v-model:checked="record.status" />
         </template>
-
         <template v-if="column.dataIndex === 'operation'">
           <a-space>
             <span class="table-link-action" @click="onEdit(record)"> <EditOutlined />修改 </span>
-
             <a-popconfirm title="确定要删除吗？" @confirm="onDelete(record)">
               <span class="table-link-action"> <DeleteOutlined />删除 </span>
             </a-popconfirm>
@@ -40,7 +38,7 @@
         </template>
       </template>
     </a-table>
-    <MaterialDrawer v-model:model-value="state.showDia"></MaterialDrawer>
+    <MaterialDrawer v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData"></MaterialDrawer>
   </div>
 </template>
 
@@ -101,11 +99,11 @@ const onAddMsg = () => {
 const onEdit = (item) => {
   state.actionType = 'edit'
   state.editData = item
+  state.showDia = true
 }
 
 const onDelete = (item) => {
   state.dataSource = state.dataSource.filter((el) => el.id !== item.id)
-  state.showDia = true
 }
 
 const initData = () => {
