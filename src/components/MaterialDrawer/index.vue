@@ -21,7 +21,6 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, onMounted, computed, reactive, watch, nextTick, shallowRef, onBeforeUnmount } from 'vue'
-import { defineEmits } from 'vue'
 import E from 'wangeditor'
 const emits = defineEmits(['update:modelValue'])
 

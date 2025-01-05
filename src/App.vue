@@ -41,12 +41,12 @@ onErrorCaptured((err, instance, info) => {
   if (window.env !== 'localhost') {
     // debugger
     console.log(err, instance, info)
-    Modal.error({
-      title: 'System Error',
-      content: h('pre', err.stack),
-      class: 'errorCapturedModal',
-      width: '60%'
-    })
+    // Modal.error({
+    //   title: 'System Error',
+    //   content: h('pre', err.stack),
+    //   class: 'errorCapturedModal',
+    //   width: '60%'
+    // })
   }
 })
 </script>
