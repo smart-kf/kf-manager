@@ -40,7 +40,7 @@
         </template>
       </template>
     </a-table>
-    <MaterialDrawer v-model:model-value="state.showDia"></MaterialDrawer>
+    <MaterialDrawer v-model:model-value="state.showDia" :is-ai="true" :action-type="state.actionType" :edit-data="state.editData"></MaterialDrawer>
   </div>
 </template>
 
@@ -109,11 +109,11 @@ const onAddMsg = () => {
 const onEdit = (item) => {
   state.actionType = 'edit'
   state.editData = item
+  state.showDia = true
 }
 
 const onDelete = (item) => {
   state.dataSource = state.dataSource.filter((el) => el.id !== item.id)
-  state.showDia = true
 }
 
 const initData = () => {

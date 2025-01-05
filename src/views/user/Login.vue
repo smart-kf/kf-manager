@@ -280,7 +280,7 @@ onMounted(() => {
   }
 }
 .login-tab {
-  ::v-deep .ant-tabs-nav-list {
+  :deep(.ant-tabs-nav-list) {
     width: 100%;
     .ant-tabs-tab {
       margin: 0;

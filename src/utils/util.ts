@@ -109,7 +109,6 @@ export const getWeek = (week: number, useZhou) => {
 }
 
 export const isDev = (import.meta as any).env.VITE_DEV
-console.log(isDev)
 
 export const baseURL = isDev ? '/api' : (import.meta as any).env.VITE_BASE_URL
 
