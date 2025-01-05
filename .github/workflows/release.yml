@@ -4,9 +4,9 @@ on:
   # 在针对 `main` 分支的推送上运行。如果你
   # 使用 `master` 分支作为默认分支，请将其更改为 `master`
   push:
-    branches: [release]
+    # branches: [release]
     tags:
-      - 'v*'  # 只在以 'v' 开头的标签时触发，可以根据需要更改
+      - 'release/v*' # 只在release分支以 'v' 开头的标签时触发，可以根据需要更改
 
   # 允许你从 Actions 选项卡手动运行此工作流程
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
       # - uses: pnpm/action-setup@v3 # 如果使用
       # - uses: oven-sh/setup-bun@v1 # 如果使用 Bun，请取消注释
 
-      # node modules cache.. 
+      # node modules cache..
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
@@ -46,17 +46,17 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-        
+
       - name: Install dependencies
         run: yarn install # 或 pnpm install / yarn install / bun install
-        
+
       - name: Build
         run: yarn build # 或 pnpm docs:build / yarn docs:build / bun run docs:build
-      
+
       - name: Create dist archive
         run: |
           tar -czvf dist.tar.gz ./dist  # 将 dist 目录压缩为 dist.tar.gz
-          
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
