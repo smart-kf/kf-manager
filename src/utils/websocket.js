@@ -24,20 +24,25 @@ class WebSocketClient {
           clearTimeout(this.reconnectTimer);
         }
       };
-  
+      
+      // 接收到消息
       this.socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('websocket接收到消息：',data);
+          this.messageHandlers.forEach(handler => handler(data));
+        } catch (error) {
+          
+        }
         
-        const data = JSON.parse(event.data);
-        console.log('接收到消息：',data);
-        this.messageHandlers.forEach(handler => handler(data));
       };
   
       this.socket.onclose = (event) => {
-        console.log('WebSocket connection closed.', event.reason);
+        console.log('WebSocket connection closed.', event);
         this.stopHeartbeat();
-        if (!this.isManualClose) {
-          this.reconnect();
-        }
+        // if (!this.isManualClose) {
+        //   this.reconnect();
+        // }
       };
   
       this.socket.onerror = (error) => {

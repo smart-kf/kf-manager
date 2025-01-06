@@ -15,9 +15,6 @@
     "format": "prettier --write src/",
     "dev-ui": "concurrently \"vite -m UseFastDevelopBall\" \"npm run create-module-be\" ",
     "clean-dev": "vite --force",
-    "v": "node config/createModule/index.js --type=views",
-    "c": "node config/createModule/index.js --type=components",
-    "create-module-be": "node config/createModule/backend.js",
     "report": "cross-env vite build"
   },
   "dependencies": {

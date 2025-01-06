@@ -20,15 +20,17 @@
         <div
           v-for="(message, index) in messages"
           :key="index"
-          :class="['message', message.sender === 'me' ? 'right' : '']"
+          :class="['message', message.isKf == '1' ? 'right' : '']"
         >
           <div class="avatar-and-name">
-            <span class="name">{{ message.name }}</span>
-            <img :src="message.avatar" alt="Avatar" />
+            <span class="name">{{ message.isKf === '1' ? '' : message.guestName }}</span>
+            <img :src="message.guestAvatar" alt="Avatar" />
           </div>
           <div class="message-content">
-            <p>{{ message.text }}</p>
-            <span class="time">{{ message.time }}</span>
+            <p v-if="message.msgType === 'text'">{{ message.content }}</p>
+            <video v-if="message.msgType === 'video'" :src="message.content" controls class="video-box"></video>
+            <img v-if="message.msgType === 'image'" :src="message.content"  class="image-box" />
+            <span class="time">{{ message.msgTime }}</span>
           </div>
         </div>
       </div>
@@ -40,7 +42,7 @@
              <FileImageOutlined @click="selectFile('image')" class="emoji-text"/>
              <VideoCameraOutlined @click="selectFile('video')" class="emoji-text"/>
         </div>
-        <a-textarea v-model:value="newMessage" v-focus placeholder="Type your message..." :bordered="false" @pressEnter="sendMessage"/>
+        <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false" @pressEnter="sendMessage"/>
       </div>
 
       
@@ -49,9 +51,11 @@
   
 <script setup>
 import { ref, onMounted, nextTick, defineProps, toRefs } from 'vue';
-import WebSocketClient from '@/utils/websocket.js';
+// import WebSocketClient from '@/utils/websocket.js';
+import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
+import dayjs from 'dayjs'
 
 const props = defineProps({
     toUser:{
@@ -87,96 +91,120 @@ const clientInfo = ref({
 })
 
 
-      // ws实例
-      let wsClient
+// ws实例
+let wsClient
 
-      // 消息对象数组
-      const messages = ref([
-        {
-          sender: 'other',
-          name: 'User 1',
-          avatar: 'https://via.placeholder.com/40',
-          text: 'Hello! How are you?',
-          time: '10:15 AM',
-        },
-        {
-          sender: 'me',
-          name: 'You',
-          avatar: 'https://via.placeholder.com/40',
-          text: "I'm good, thanks! How about you?",
-          time: '10:16 AM',
-        },
-      ]);
-  
-      // 输入框中的新消息
-      const newMessage = ref('');
-  
-      // 消息展示区域引用
-      const messageDisplay = ref(null);
-  
-      // 发送消息
-      const sendMessage = () => {
-        const messageText = newMessage.value.trim();
-        if (messageText) {
-          const currentTime = new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-          messages.value.push({
-            sender: 'me',
-            name: 'You',
-            avatar: 'https://via.placeholder.com/40',
-            text: messageText,
-            time: currentTime,
-          });
-          newMessage.value = '';
+// {
+//   "type": "msg",
+//   "data": {
+//     "msgType": "枚举值：text || image || video",
+//     "msgId": 12345, // 消息id
+//     "guestName": "客户名称",
+//     "guestAvatar": "头像地址",
+//     "guestId": "客户id",
+//     "msgTime": 12345654324, //时间戳
+//     "kfId": "客服id",
+//     "content": "内容：text=文本、image、video = 地址",
+//     "city": "城市",
+//     "ip": "ip地址",
+//     "isKf": 1 || 2, //   1=客服消息，2=客户消息 
+//   }
+// }
 
-          wsClient.sendMessage(messageText)
+// 消息对象数组
+const messages = ref([
+  // {
+  //   sender: 'other',
+  //   name: 'User 1',
+  //   avatar: 'https://via.placeholder.com/40',
+  //   text: 'Hello! How are you?',
+  //   time: '10:15 AM',
+  // },
+  // {
+  //   sender: 'me',
+  //   name: 'You',
+  //   avatar: 'https://via.placeholder.com/40',
+  //   text: "I'm good, thanks! How about you?",
+  //   time: '10:16 AM',
+  // },
+]);
   
-          // 滚动到底部
-          nextTick(() => {
-            messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-          });
-        }
-      };
+// 输入框中的新消息
+const newMessage = ref({
+  msgType: '', // "枚举值：text || image || video"
+  msgId: '',
+  content: '',
+  guestName: '',
+  guestAvatar: '',
+  msgTime: '',
+  kfId: '',
+  content: '', //"内容：text=文本、image、video = 地址"
+  city: "",
+  ip: "",
+  isKf: 1
+})
+  
+// 消息展示区域引用
+const messageDisplay = ref(null);
+  
+// 发送消息
+const sendMessage = () => {
+  const messageText = newMessage.value.content.trim();
+  if (messageText) {
+    newMessage.value.msgType = 'text'
+    newMessage.value.content = messageText
+    newMessage.value.msgTime = dayjs().format('HH:mm:ss')
+    newMessage.value.guestAvatar = 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png'
+    messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
+    // 发送给服务器
+    wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
+    // 清空聊天
+    newMessage.value.content = '';
+
+    // 滚动到底部
+    nextTick(() => {
+      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+    });
+  }
+};
 
 
-      // 切换表情包选择框
-    const onEmojiChange = (emoji) => {
-        newMessage.value += emoji.i;
-    };
+// 切换表情包选择框
+const onEmojiChange = (emoji) => {
+  newMessage.value += emoji.i;
+};
 
     
 
-    // 选择文件
-    const selectFile = (type) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = type === 'image' ? 'image/*' : 'video/*';
-      input.onchange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            //TODO 上传至服务器，得到url后展示在消息框中
-        //   const currentTime = new Date().toLocaleTimeString([], {
-        //     hour: '2-digit',
-        //     minute: '2-digit',
-        //   });
-        //   messages.value.push({
-        //     sender: 'me',
-        //     name: 'You',
-        //     avatar: 'https://via.placeholder.com/40',
-        //     text: `Sent a ${type}: ${file.name}`,
-        //     time: currentTime,
-        //   });
+// 选择文件
+const selectFile = (type) => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = type === 'image' ? 'image/*' : 'video/*';
+  input.onchange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        //TODO 上传至服务器，得到url后展示在消息框中
+    //   const currentTime = new Date().toLocaleTimeString([], {
+    //     hour: '2-digit',
+    //     minute: '2-digit',
+    //   });
+    //   messages.value.push({
+    //     sender: 'me',
+    //     name: 'You',
+    //     avatar: 'https://via.placeholder.com/40',
+    //     text: `Sent a ${type}: ${file.name}`,
+    //     time: currentTime,
+    //   });
 
-          // 滚动到底部
-          nextTick(() => {
-            messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-          });
-        }
-      };
-      input.click();
-    };
+      // 滚动到底部
+      nextTick(() => {
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+      });
+    }
+  };
+  input.click();
+};
       
 // 获取客户端信息
 const getClientInfo = ()=>{
@@ -193,197 +221,235 @@ const getClientInfo = ()=>{
 }
         
   
-      // 自动滚动到最新消息
-      onMounted(() => {
-        getClientInfo()
+// 自动滚动到最新消息
+onMounted(() => {
+  getClientInfo()
 
-        nextTick(() => {
-          messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-        });
+  nextTick(() => {
+    messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+  });
 
-        // 监听消息
-        wsClient = new WebSocketClient('ws://localhost:8089', {
-            reconnectInterval: 5000,
-            heartbeatInterval: 30000,
-            heartbeatMessage: { type: 'ping' }
-        });
+  // 监听消息
+  wsClient = new WebSocketClient('ws://goim.smartkf.top/socket.io/?token=helloworld&platform=kf-backend&EIO=3&transport=websocket', {
+  // wsClient = new WebSocketClient('ws://localhost:8089', {
+      reconnectInterval: 5000,
+      heartbeatInterval: 30000,
+      heartbeatMessage: { type: 'ping' }
+  });
 
-        wsClient.onMessage((message)=>{
-            const currentTime = new Date().toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-          messages.value.push({
-            sender: 'other',
-            name: 'User 1',
-            avatar: 'https://via.placeholder.com/40',
-            text: message,
-            time: currentTime,
-          });
-            
-        })
-      });
+  // wsClient.onMessage((res)=>{
+  //   console.log('wsClient.onMessage',res);
+    
+  //   const {type,data} = res || {}
+  //   // 文本
+  //   switch (data?.msgType) {
+  //     case "text":
+  //       messages.value.push({
+  //         msgType: 'text',
+  //         guestName: data.guestName,
+  //         guestAvatar: data.guestAvatar,
+  //         content: data.content,
+  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
+  //       });
+  //     break;
+  //     case "video":
+  //       messages.value.push({
+  //         msgType: 'video',
+  //         guestName: data.guestName,
+  //         guestAvatar: data.guestAvatar,
+  //         content: data.content,
+  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
+  //       });
+  //       break
+  //     case "image":
+  //       messages.value.push({
+  //         msgType: 'image',
+  //         guestName: data.guestName,
+  //         guestAvatar: data.guestAvatar,
+  //         content: data.content,
+  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
+  //       });
+  //       break
+  //     default:
+  //       break;
+  //   }
+      
+    
+      
+  // })
+});
   
      
-  </script>
+</script>
   
-  <style lang="less" scoped>
-  
-  .chatroom-contain {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
+<style lang="less" scoped>
 
-  .to-user{
-    width: 100%;
-    height: 53px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  /* 消息展示区域 */
-  .message-display {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background-color: #f9f9f9;
-  }
-  
-  .message {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    max-width: 80%;
-  }
-  
-  .message .avatar-and-name {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .message .avatar-and-name .name {
-    font-size: 0.9em;
-    color: #555;
-  }
-  
-  .message img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-  }
-  
-  .message-content {
-    background: #e0e0e0;
-    padding: 10px 15px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .message-content .time {
-    font-size: 0.75em;
-    color: #888;
-    margin-top: 5px;
-    align-self: flex-end;
-  }
-  
-  .message.right {
-    margin-left: auto;
-    flex-direction: row-reverse;
-  }
-  
-  .message.right .message-content {
-    background: #d1e7ff;
-  }
-  
-  /* 消息输入区域 */
-  .message-input {
+.chatroom-contain {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  border-top: 1px solid #ddd;
+  justify-content: space-between;
   background: #fff;
-  min-height: 200px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.to-user{
+  width: 100%;
+  height: 53px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* 消息展示区域 */
+.message-display {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #f9f9f9;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 80%;
+}
+
+.message .avatar-and-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.message .avatar-and-name .name {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.message img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.message-content {
+  background: #e0e0e0;
+  padding: 10px 15px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+
+  .video-box{
+    width: 200px;
+    height: 120px;
+  }
+
+  .image-box{
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+  }
+
+}
+
+.message-content .time {
+  font-size: 0.75em;
+  color: #888;
+  margin-top: 5px;
+  align-self: flex-end;
+}
+
+.message.right {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+
+.message.right .message-content {
+  background: #9EEA6A;
+}
+
+/* 消息输入区域 */
+.message-input {
+display: flex;
+flex-direction: column;
+padding: 10px;
+border-top: 1px solid #ddd;
+background: #fff;
+min-height: 200px;
 }
 
 .message-input .tools {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+display: flex;
+gap: 10px;
+margin-bottom: 10px;
 }
 
 .message-input .ant-input {
-  flex: 1;
-  padding: 10px;
-  font-size: 1em;
-  outline: none;
+flex: 1;
+padding: 10px;
+font-size: 1em;
+outline: none;
 }
 
 .message-input button {
-  padding: 10px;
-  border: none;
-  background: transparent;
-  color: #fff;
-  font-size: 1em;
-  cursor: pointer;
+padding: 10px;
+border: none;
+background: transparent;
+color: #fff;
+font-size: 1em;
+cursor: pointer;
 }
 
 .emoji-text{
-    padding: 10px;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    cursor: pointer;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 
 .info-container {
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+height: 53px;
+padding: 5px 10px;
+background-color: #f9f9f9;
+border-bottom: 1px solid #ddd;
+font-size: 14px;
+color: #333;
+
+.info-row {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 53px;
-  padding: 5px 10px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #ddd;
-  font-size: 14px;
-  color: #333;
+  justify-content: flex-start;
+  align-items: center;
+  }
 
-  .info-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    }
+  .nickname {
+      font-weight: bold;
+      margin-right: 10px;
+  }
 
-    .nickname {
-        font-weight: bold;
-        margin-right: 10px;
-    }
-
-    .ip {
-    color: #555;
-    }
+  .ip {
+  color: #555;
+  }
 }
 
 
 
 .system-type, .system-version, .network-type {
-  margin-right: 10px;
-  color: #666;
+margin-right: 10px;
+color: #666;
 }
 
 .system-type:last-child, .system-version:last-child, .network-type:last-child {
-  margin-right: 0;
+margin-right: 0;
 }
-  </style>
-  
+</style>
