@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
     // 'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE),
     // https://cn.vitejs.dev/config/shared-options.html#envprefix
     build: {
-      sourcemap: false,
+      sourcemap: true,
       chunkSizeWarningLimit: 5000,
       minify: 'terser', // 压缩方式
       terserOptions: {
