@@ -9,22 +9,22 @@
         <a-tab-pane key="login" tab="卡密登录">
           <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
             <a-form-item name="userNum">
-              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input>
+              <!-- <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input> -->
             </a-form-item>
             <a-form-item name="password">
-              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password"> </a-input-password>
+              <!-- <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password"> </a-input-password> -->
             </a-form-item>
             <a-form-item name="agree">
-              <a-checkbox-group v-model:value="formData.agree">
+              <!-- <a-checkbox-group v-model:value="formData.agree">
                 <a-checkbox :value="true"></a-checkbox> <span> 请阅读并同意 </span><a @click="showAgreement">《用户协议&隐私政策》 </a>
-              </a-checkbox-group>
+              </a-checkbox-group> -->
             </a-form-item>
             <a-form-item>
               <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
-        <a-tab-pane key="renew" tab="卡密续费">
+        <!-- <a-tab-pane key="renew" tab="卡密续费">
           <a-form id="formLogin" ref="renewFormRef" :model="formData" :rules="renewRules">
             <a-form-item name="userNum">
               <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input>
@@ -47,7 +47,7 @@
           <div class="other-btn">
             <a-button>用户IP查询</a-button>
           </div>
-        </a-tab-pane>
+        </a-tab-pane> -->
       </a-tabs>
       <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginHandle">登录</a-button>
     </div>
@@ -207,7 +207,7 @@ const showAgreement = () => {
 }
 const loginHandle = async () => {
   ls.set('token', 'xxx')
-  router.push({ name: 'qrCode' })
+  router.push({ path: '/qrCode' })
 }
 const loginSubmit = (type: string) => {
   if (type === 'login') {
