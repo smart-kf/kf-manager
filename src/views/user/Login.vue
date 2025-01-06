@@ -9,10 +9,10 @@
         <a-tab-pane key="login" tab="卡密登录">
           <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
             <a-form-item name="userNum">
-              <!-- <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input> -->
+              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input>
             </a-form-item>
             <a-form-item name="password">
-              <!-- <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password"> </a-input-password> -->
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password"> </a-input-password>
             </a-form-item>
             <a-form-item name="agree">
               <!-- <a-checkbox-group v-model:value="formData.agree">
