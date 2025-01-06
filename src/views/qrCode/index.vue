@@ -32,14 +32,14 @@
             <span v-if="record.status === 2" style="color: #ff4d4f">停用</span>
           </template>
           <template v-if="column.dataIndex === 'note'">
-            <!-- <a-input-group compact>
+            <a-input-group compact>
               <a-input v-model:value="record.note" maxlenght="150" placeholder="修改后，请点击保存" style="width: 80%" />
               <a-tooltip title="保存">
                 <a-button>
                   <template #icon><AuditOutlined /></template>
                 </a-button>
               </a-tooltip>
-            </a-input-group> -->
+            </a-input-group>
           </template>
           <template v-if="column.dataIndex === 'operation'">
             <a-space>

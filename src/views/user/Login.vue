@@ -24,7 +24,7 @@
             </a-form-item>
           </a-form>
         </a-tab-pane>
-        <a-tab-pane key="renew" tab="卡密续费">
+        <!-- <a-tab-pane key="renew" tab="卡密续费">
           <a-form id="formLogin" ref="renewFormRef" :model="formData" :rules="renewRules">
             <a-form-item name="userNum">
               <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.userNum"> </a-input>
@@ -47,8 +47,9 @@
           <div class="other-btn">
             <a-button>用户IP查询</a-button>
           </div>
-        </a-tab-pane>
+        </a-tab-pane> -->
       </a-tabs>
+      <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginHandle">登录</a-button>
     </div>
     <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
       <div class="agreement-content">
@@ -165,8 +166,8 @@ const state = reactive({
   smsSendBtn: false,
   showAgreementDia: false
 })
-const loginFormRef: any = ref('')
-const renewFormRef: any = ref('')
+const loginFormRef: any = ref(null)
+const renewFormRef: any = ref(null)
 
 // 表单信息
 const formData: any = reactive({
@@ -206,7 +207,7 @@ const showAgreement = () => {
 }
 const loginHandle = async () => {
   ls.set('token', 'xxx')
-  router.push('/qrCode')
+  router.push({ path: '/qrCode' })
 }
 const loginSubmit = (type: string) => {
   if (type === 'login') {
