@@ -6,6 +6,8 @@ class WebSocketClient {
   
     // 连接方法
     connect() {
+        this.messageHandlers = [];
+
         this.socket = io("ws://goim.smartkf.top:80/", {
             host: "goim.smartkf.top", // 域名，部署到线上直接用当前域名，本地连接可以写死。
             secure: true, // 固定
@@ -15,9 +17,10 @@ class WebSocketClient {
         });
         
         // 服务端确认收到消息
-        this.socket.on("messageAck",function(msg){
-            // let data = JSON.parse(msg)
-            console.log("messageAck-->",msg)
+        this.socket.on("messageAck",(msg)=>{
+            let data = JSON.parse(msg)
+            console.log("messageAck-->",data)
+            this.messageHandlers.forEach(handler => handler(data));
         })
 
 
@@ -43,6 +46,11 @@ class WebSocketClient {
     sendMessage(message) {
         console.log('发送消息:',message);
         this.socket.emit('message', JSON.stringify(message));
+    }
+
+    // 接收消息
+    onMessage(handler) {
+        this.messageHandlers.push(handler);
     }
   }
   

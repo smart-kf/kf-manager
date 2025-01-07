@@ -218,12 +218,12 @@ onMounted(() => {
   });
 
   // 监听消息
-  wsClient = new WebSocketClient('ws://goim.smartkf.top/socket.io/?token=helloworld&platform=kf-backend&EIO=3&transport=websocket', {
-  // wsClient = new WebSocketClient('ws://localhost:8089', {
-      reconnectInterval: 5000,
-      heartbeatInterval: 30000,
-      heartbeatMessage: { type: 'ping' }
-  });
+  wsClient = new WebSocketClient();
+
+  wsClient.onMessage(res=>{
+    console.log('接收到啦：',res);
+    
+  })
 
   // wsClient.onMessage((res)=>{
   //   console.log('wsClient.onMessage',res);
