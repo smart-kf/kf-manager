@@ -12,7 +12,7 @@
               <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
             </a-form-item>
             <a-form-item name="password">
-              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+              <!-- <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" /> -->
             </a-form-item>
             <a-form-item name="agree">
               <a-checkbox-group v-model:value="formData.agree">
@@ -20,7 +20,7 @@
               </a-checkbox-group>
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginHandle">登录</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -49,8 +49,8 @@
           </div>
         </a-tab-pane>
       </a-tabs>
+      <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginHandle">登录</a-button>
     </div>
-    <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
     <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
       <div class="agreement-content">
         <p>用户协议&amp;隐私政策</p>
