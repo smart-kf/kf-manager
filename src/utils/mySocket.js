@@ -1,6 +1,6 @@
 
 class WebSocketClient {
-    constructor(url, options = {}) {
+    constructor() {
       this.connect();
     }
   
@@ -13,16 +13,19 @@ class WebSocketClient {
             query: "token=helloworld&platform=kf-backend",  // token 需要换成登录token，现在没有做校验可以随便放
             path: "/socket.io/", // 固定
         });
-  
+        
+        // 服务端确认收到消息
         this.socket.on("messageAck",function(msg){
             // let data = JSON.parse(msg)
             console.log("messageAck-->",msg)
         })
 
-        this.socket.on('test', function (msg) {
-            console.log('test:',msg);
-        });
 
+        // this.socket.on('test', function (msg) {
+        //     console.log('test:',msg);
+        // });
+
+        // 断开ws链接
         this.socket.on('disconnect', (reason) => {
             console.log('Disconnected from the server:', reason);
         });
@@ -32,9 +35,6 @@ class WebSocketClient {
             console.log("sessionId-->",msg)
         })
       
-      
-  
-    
     }
   
     
@@ -42,11 +42,8 @@ class WebSocketClient {
     // 发送消息
     sendMessage(message) {
         console.log('发送消息:',message);
-        this.socket.emit('message', JSON.stringify({"msgType": "text", "ip": "127.0.0.1", "content": "能收到不？？"}));
-        // this.socket.emit('message', JSON.stringify(message));
+        this.socket.emit('message', JSON.stringify(message));
     }
-  
-    
   }
   
   export default WebSocketClient;
