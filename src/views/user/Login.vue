@@ -7,7 +7,7 @@
       <a-tabs :activeKey="customActiveKey" centered class="login-tab" @change="handleTabClick">
         <!-- 账户密码登录 -->
         <a-tab-pane key="login" tab="卡密登录">
-          <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
+          <a-form id="formLogin" :model="formData" :rules="loginRules">
             <a-form-item name="userNum">
               <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
             </a-form-item>
@@ -20,7 +20,7 @@
               </a-checkbox-group>
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginHandle">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -50,6 +50,7 @@
         </a-tab-pane>
       </a-tabs>
     </div>
+    <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
     <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
       <div class="agreement-content">
         <p>用户协议&amp;隐私政策</p>
