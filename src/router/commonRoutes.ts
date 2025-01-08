@@ -15,12 +15,7 @@ export default [
     component: BasicLayout,
     redirect: '/qrCode',
     children: [
-      {
-        path: '/qrCode',
-        name: 'qrCode',
-        meta: { title: '二维码', icon: 'icon-erweima', keepAlive: false },
-        component: () => import('@/views/qrCode/index.vue')
-      },
+      
       {
         path: '/chat',
         name: 'Chat',
@@ -58,6 +53,12 @@ export default [
         component: () => import('@/views/systemSetting/index.vue')
       }
     ]
+  },
+  {
+    path: '/qrCode',
+    name: 'qrCode',
+    meta: { title: '二维码', icon: 'icon-erweima', keepAlive: false },
+    component: () => import('@/views/qrCode/index.vue')
   },
   {
     path: '/user',
