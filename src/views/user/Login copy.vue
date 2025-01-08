@@ -7,22 +7,20 @@
       <a-tabs :activeKey="customActiveKey" centered class="login-tab" @change="handleTabClick">
         <!-- 账户密码登录 -->
         <a-tab-pane key="login" tab="卡密登录">
-          <a-form id="formLogin" :model="formData" :rules="loginRules" @finish="loginHandle">
-            <a-form-item name="userNum">
-              <a-input v-model:value="formData.userNum" />
-              <!-- <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" /> -->
+          <a-form id="formLogin" :model="formData" :rules="loginRules">
+            <!-- <a-form-item name="userNum">
+              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
             </a-form-item>
             <a-form-item name="password">
-              <a-input-password v-model:value="formData.password" />
-              <!-- <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" /> -->
-            </a-form-item>
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+            </a-form-item> -->
             <a-form-item name="agree">
               <a-checkbox-group v-model:value="formData.agree">
                 <a-checkbox :value="true"></a-checkbox> <span> 请阅读并同意 </span><a @click="showAgreement">《用户协议&隐私政策》 </a>
               </a-checkbox-group>
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" html-type="submit" :loading="state.loginBtn" :disabled="state.loginBtn">登录</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -207,9 +205,7 @@ const handleTabClick = (key: string) => {
 const showAgreement = () => {
   state.showAgreementDia = true
 }
-const loginHandle = async (values: any) => {
-  console.log(values)
-
+const loginHandle = async () => {
   ls.set('token', 'xxx')
   router.push({ path: '/qrCode' })
 }
