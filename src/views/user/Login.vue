@@ -213,27 +213,27 @@ const loginHandle = async (values: any) => {
   ls.set('token', 'xxx')
   router.push({ path: '/qrCode' })
 }
-const loginSubmit = (type: string) => {
-  if (type === 'login') {
-    loginFormRef.value
-      .validate()
-      .then(() => {
-        loginHandle()
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  } else {
-    renewFormRef.value
-      .validate()
-      .then(() => {
-        console.log(formData)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-}
+// const loginSubmit = (type: string) => {
+//   if (type === 'login') {
+//     loginFormRef.value
+//       .validate()
+//       .then(() => {
+//         loginHandle()
+//       })
+//       .catch((err) => {
+//         console.log(err)
+//       })
+//   } else {
+//     renewFormRef.value
+//       .validate()
+//       .then(() => {
+//         console.log(formData)
+//       })
+//       .catch((err) => {
+//         console.log(err)
+//       })
+//   }
+// }
 
 // 初始化信息
 const initData = () => {
