@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           // 生产环境时移除console.log调试代码
-          drop_console: true,
+          drop_console: false,
           drop_debugger: true
         }
       },
