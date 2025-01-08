@@ -206,7 +206,7 @@ const showAgreement = () => {
 }
 const loginHandle = async () => {
   ls.set('token', 'xxx')
-  router.push({ path: '/qrCode' })
+  router.push({ path: '/' })
 }
 const loginSubmit = (type: string) => {
   if (type === 'login') {
