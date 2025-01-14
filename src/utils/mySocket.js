@@ -53,5 +53,7 @@ class WebSocketClient {
         this.messageHandlers.push(handler);
     }
   }
+
   
-  export default WebSocketClient;
+
+export default WebSocketClient;

@@ -2,7 +2,6 @@ import { fileURLToPath, URL } from 'node:url'
 import path from 'path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
 
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import mockDevServerPlugin from 'vite-plugin-mock-dev-server'
@@ -27,7 +26,7 @@ export default defineConfig(({ mode }) => {
     // 'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE),
     // https://cn.vitejs.dev/config/shared-options.html#envprefix
     build: {
-      sourcemap: true,
+      sourcemap: false,
       chunkSizeWarningLimit: 5000,
       minify: 'terser', // 压缩方式
       terserOptions: {
@@ -42,21 +41,24 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'js/[name]-[hash].js',
           entryFileNames: 'js/[name]-[hash].js',
           assetFileNames: '[ext]/[name]-[hash].[ext]',
-          manualChunks(id) {
-            //静态资源分拆打包
-            // 可参考https://www.cnblogs.com/jyk/p/16029074.html
-            // node包插件打包在一起
-            if (id.includes('node_modules')) {
-              return 'vendors'
-            }
+          manualChunks: {
+            vue: ['vue', 'vue-router'],
+            antVue: ['ant-design-vue'],
+            wangedit: ['wangeditor']
           }
+          // manualChunks(id) {
+          //   //静态资源分拆打包
+          //   // 可参考https://www.cnblogs.com/jyk/p/16029074.html
+          //   // node包插件打包在一起
+          //   if (id.includes('node_modules')) {
+          //     return id.toString().split('node_modules/')[1].split('/')[0].toString()
+          //   }
+          // }
         }
       }
     },
     plugins: [
       vue(),
-      vueJsx(),
-      // vueDevTools(),
       createSvgIconsPlugin({
         // 指定需要缓存的图标文件夹
         iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
