@@ -127,6 +127,7 @@ const newMessage = ref({
   guestName: '',
   guestAvatar: '',
   msgTime: '',
+  guestId: '58|0233a664e9cb4d6e87fbb4c58137cb08',
   kfId: '',
   content: '', //"内容：text=文本、image、video = 地址"
   isKf: 1
