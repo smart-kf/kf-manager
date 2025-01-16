@@ -1,3 +1,4 @@
+const token = "f64366a9-19dc-43fb-b1ed-c33bb11180b6"
 
 class WebSocketClient {
     constructor() {
@@ -6,13 +7,17 @@ class WebSocketClient {
   
     // 连接方法
     connect() {
+        console.log('import.meta.env:',import.meta.env)
+
         this.messageHandlers = [];
 
-        this.socket = io("ws://goim.smartkf.top:80/", {
+        const wsPath = import.meta.env.DEV ? 'ws://goim.smartkf.top:80/' : 'wss://goim.smartkf.top:443/'
+
+        this.socket = io(wsPath, {
             host: "goim.smartkf.top", // 域名，部署到线上直接用当前域名，本地连接可以写死。
             secure: true, // 固定
             transports: ['websocket'], // 固定
-            query: "token=helloworld&platform=kf-backend",  // token 需要换成登录token，现在没有做校验可以随便放
+            query:  `platform=kf-backend&token=${token}`,
             path: "/socket.io/", // 固定
         });
         
@@ -20,6 +25,11 @@ class WebSocketClient {
         this.socket.on("messageAck",(msg)=>{
             let data = JSON.parse(msg)
             console.log("messageAck-->",data)
+        })
+
+        socket.on("message",function(msg){
+            let data = JSON.parse(msg)
+            console.log("message-->",data)
             this.messageHandlers.forEach(handler => handler(data));
         })
 
