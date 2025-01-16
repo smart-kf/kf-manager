@@ -27,7 +27,7 @@ class WebSocketClient {
             console.log("messageAck-->",data)
         })
 
-        this.socket.on("message",function(msg){
+        this.socket.on("message",(msg)=>{
             let data = JSON.parse(msg)
             console.log("message-->",data)
             this.messageHandlers.forEach(handler => handler(data));
