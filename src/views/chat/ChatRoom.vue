@@ -30,7 +30,7 @@
             <p v-if="message.msgType === 'text'">{{ message.content }}</p>
             <video v-if="message.msgType === 'video'" :src="message.content" controls class="video-box"></video>
             <img v-if="message.msgType === 'image'" :src="message.content"  class="image-box" />
-            <span class="time">{{ message.msgTime }}</span>
+            <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
           </div>
         </div>
       </div>
@@ -51,35 +51,34 @@
   
 <script setup>
 import { ref, onMounted, nextTick, defineProps, toRefs } from 'vue';
-// import WebSocketClient from '@/utils/websocket.js';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 
 const props = defineProps({
-    toUser:{
-        type: Object,
-        default: ()=>({
-                externalUser: {
-                    nickName: '',
-                    avatar: '',
-                    isOnline: true,
-                },
-                lastMessage: {
-                    from: '',
-                    fromType: '',
-                    to: '',
-                    toType: '',
-                    content: {
-                        type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                        text: {
-                            content: 'Hey, how are you?'
-                        }
-                    }
-                },
-        })
-    }
+  toUser:{
+    type: Object,
+    default: ()=>({
+      externalUser: {
+          nickName: '',
+          avatar: '',
+          isOnline: true,
+      },
+      lastMessage: {
+          from: '',
+          fromType: '',
+          to: '',
+          toType: '',
+          content: {
+              type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
+              text: {
+                  content: 'Hey, how are you?'
+              }
+          }
+      },
+    })
+  }
 })
 
 
@@ -105,8 +104,6 @@ let wsClient
 //     "msgTime": 12345654324, //时间戳
 //     "kfId": "客服id",
 //     "content": "内容：text=文本、image、video = 地址",
-//     "city": "城市",
-//     "ip": "ip地址",
 //     "isKf": 1 || 2, //   1=客服消息，2=客户消息 
 //   }
 // }
@@ -114,18 +111,11 @@ let wsClient
 // 消息对象数组
 const messages = ref([
   // {
-  //   sender: 'other',
-  //   name: 'User 1',
-  //   avatar: 'https://via.placeholder.com/40',
-  //   text: 'Hello! How are you?',
+  //   msgType: 'text', image || video
+  //   content: '',
+  //   msgTime: '', // 时间戳
+  //   guestAvatar: '',  //头像
   //   time: '10:15 AM',
-  // },
-  // {
-  //   sender: 'me',
-  //   name: 'You',
-  //   avatar: 'https://via.placeholder.com/40',
-  //   text: "I'm good, thanks! How about you?",
-  //   time: '10:16 AM',
   // },
 ]);
   
@@ -137,23 +127,22 @@ const newMessage = ref({
   guestName: '',
   guestAvatar: '',
   msgTime: '',
+  guestId: '58|0233a664e9cb4d6e87fbb4c58137cb08',
   kfId: '',
   content: '', //"内容：text=文本、image、video = 地址"
-  city: "",
-  ip: "",
   isKf: 1
 })
   
 // 消息展示区域引用
 const messageDisplay = ref(null);
   
-// 发送消息
+// 回车，发送消息
 const sendMessage = () => {
   const messageText = newMessage.value.content.trim();
   if (messageText) {
     newMessage.value.msgType = 'text'
     newMessage.value.content = messageText
-    newMessage.value.msgTime = dayjs().format('HH:mm:ss')
+    newMessage.value.msgTime = Date.now()
     newMessage.value.guestAvatar = 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png'
     messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
     // 发送给服务器
@@ -171,7 +160,7 @@ const sendMessage = () => {
 
 // 切换表情包选择框
 const onEmojiChange = (emoji) => {
-  newMessage.value += emoji.i;
+  newMessage.value.content += emoji.i;
 };
 
     
@@ -230,12 +219,12 @@ onMounted(() => {
   });
 
   // 监听消息
-  wsClient = new WebSocketClient('ws://goim.smartkf.top/socket.io/?token=helloworld&platform=kf-backend&EIO=3&transport=websocket', {
-  // wsClient = new WebSocketClient('ws://localhost:8089', {
-      reconnectInterval: 5000,
-      heartbeatInterval: 30000,
-      heartbeatMessage: { type: 'ping' }
-  });
+  wsClient = new WebSocketClient();
+
+  wsClient.onMessage(res=>{
+    console.log('接收到啦：',res);
+    
+  })
 
   // wsClient.onMessage((res)=>{
   //   console.log('wsClient.onMessage',res);
@@ -340,10 +329,14 @@ onMounted(() => {
 
 .message-content {
   background: #e0e0e0;
-  padding: 10px 15px;
+  padding: 6px 10px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
+
+  p{
+    margin-bottom: 0;
+  }
 
   .video-box{
     width: 200px;

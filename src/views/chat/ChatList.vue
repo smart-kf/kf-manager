@@ -174,6 +174,10 @@ onMounted(()=>{
     overflow: hidden;
     display: flex;
     flex-direction: column;
+
+    :deep(.ant-tabs-top >.ant-tabs-nav){
+      margin: 0;
+    }
   }
   
   /* 搜索框 */

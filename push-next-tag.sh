@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git pull # 同步最新tag
+
 VERSION=$(git describe --tags --abbrev=0)
 echo "current tag: $VERSION"
 
