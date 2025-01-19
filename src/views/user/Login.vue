@@ -8,8 +8,8 @@
         <!-- 账户密码登录 -->
         <a-tab-pane key="login" tab="卡密登录">
           <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
-            <a-form-item name="userNum">
-              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
+            <a-form-item name="cardID">
+              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
             </a-form-item>
             <a-form-item name="password">
               <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
@@ -26,8 +26,8 @@
         </a-tab-pane>
         <a-tab-pane key="renew" tab="卡密续费">
           <a-form id="formLogin" ref="renewFormRef" :model="formData" :rules="renewRules">
-            <a-form-item name="userNum">
-              <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
+            <a-form-item name="cardID">
+              <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
             </a-form-item>
             <a-form-item name="newUserNum">
               <a-input type="text" placeholder="请输入新卡卡密" allowClear :maxlength="150" v-model:value="formData.newUserNum" />
@@ -155,6 +155,7 @@ import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import type { Rule } from 'ant-design-vue/es/form'
 import ls from '@/utils/Storage'
+import { message } from 'ant-design-vue'
 
 const router = useRouter()
 
@@ -170,7 +171,7 @@ const renewFormRef: any = ref(null)
 
 // 表单信息
 const formData: any = reactive({
-  userNum: '', // 卡密
+  cardID: '', // 卡密
   password: '',
   newUserNum: '', // 续费卡号
   agree: [] // 是否统同意协议
@@ -181,13 +182,13 @@ const customActiveKey = ref<string>('login')
 
 // 表单校验
 const loginRules: Record<string, Rule[]> = {
-  userNum: [{ required: true, message: '请输入登录卡密' }],
+  cardID: [{ required: true, message: '请输入登录卡密' }],
   agree: [{ required: true, message: '请勾选协议', trigger: 'change' }]
 }
 
 // 表单校验
 const renewRules: Record<string, Rule[]> = {
-  userNum: [{ required: true, message: '请输入原卡卡密' }],
+  cardID: [{ required: true, message: '请输入原卡卡密' }],
   newUserNum: [{ required: true, message: '请输入新卡卡密' }]
 }
 
@@ -205,8 +206,19 @@ const showAgreement = () => {
   state.showAgreementDia = true
 }
 const loginHandle = async () => {
-  ls.set('token', 'xxx')
-  router.push({ path: '/' })
+  let params = {
+    captchaCode: '',
+    captchaId: '',
+    cardID: formData.cardID,
+    password: ''
+  }
+  let { code, data, message }: any = await UserApi.userLogin(params)
+  if (code === 200) {
+    ls.set('token', data.token)
+    router.push({ path: '/qrCode' })
+  } else {
+    message.error(message || '请求失败')
+  }
 }
 const loginSubmit = (type: string) => {
   if (type === 'login') {

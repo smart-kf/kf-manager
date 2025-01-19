@@ -22,7 +22,7 @@ const baseService = axios.create({
 // request interceptor
 baseService.interceptors.request.use(
   config => {
-    const token = Vue.ls.get('access-token')
+    const token = Vue.ls.get('token')
     const userinfo = Vue.ls.get('userInfo')
     if (token) {
       config.headers['token'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改

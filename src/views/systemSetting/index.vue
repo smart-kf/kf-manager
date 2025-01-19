@@ -34,9 +34,10 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useUserStore } from '@/store/modules'
+import { SystemApi } from '@/webapi/index'
 
 const { userInfo }: any = useUserStore()
 const formData: any = reactive({
@@ -73,6 +74,15 @@ const onSave = () => {
 const onFinish = (values: any) => {
   console.log('Success:', values)
 }
+
+const initData = async () => {
+  let res = await SystemApi.getSysConfig({})
+  console.log(res)
+}
+
+onMounted(() => {
+  initData()
+})
 </script>
 <style lang="less" scoped>
 .base-info {

@@ -25,7 +25,7 @@
       <a-button type="primary" class="green-btn" :icon="h(PlusOutlined)">购买独立域名</a-button>
     </div>
     <div>
-      <a-table bordered :data-source="state.dataSource" :columns="columns" size="middle">
+      <a-table bordered :data-source="state.dataSource" :columns="columns" size="middle" :loading="state.tableLoading">
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'status'">
             <span v-if="record.status === 1" style="color: #7ec051">正常</span>
@@ -54,7 +54,7 @@
                 </a-button>
               </a-tooltip>
               <a-tooltip title="使码永久失效，无法引流">
-                <a-button type="primary" size="small">失效码</a-button>
+                <a-button type="primary" size="small" @click="closeQrcode(record)">失效码</a-button>
               </a-tooltip>
               <a-tooltip title="生成新码，旧码可以继续使用">
                 <a-button type="primary" size="small">更换码</a-button>
@@ -71,17 +71,20 @@
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { h } from 'vue'
-import { PlusOutlined, AuditOutlined, DownloadOutlined, LinkOutlined } from '@ant-design/icons-vue'
+import { h, createVNode } from 'vue'
+import { PlusOutlined, AuditOutlined, DownloadOutlined, LinkOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import logo from '@/assets/defaultUser.png'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
+import { QrcodeApi } from '@/webapi/index'
+
 const state = reactive({
   dataSource: [],
-  editableData: {}
+  editableData: {},
+  tableLoading: false
 })
 const qrcode = reactive({
   status: 'active',
-  value: 'https://www.antdv.com',
+  value: '',
   icon: logo
 })
 const qrcodeCanvasRef: any = ref('')
@@ -95,8 +98,8 @@ const columns = [
   },
   {
     title: '独立域名',
-    key: 'orion',
-    dataIndex: 'orion'
+    key: 'domain',
+    dataIndex: 'domain'
   },
   {
     title: '域名状态',
@@ -144,30 +147,42 @@ const downLoadQrCode = async () => {
   document.body.removeChild(a)
 }
 
-const initData = () => {
-  state.dataSource = [
-    {
-      indexNum: 1,
-      id: 1,
-      orion: '活码',
-      status: 1,
-      updateTime: '2024-13-13 13:13:13',
-      note: 'xxx'
+const getQrcodeList = async () => {
+  state.tableLoading = true
+  let { code, data, message }: any = await QrcodeApi.getQrcode({})
+  state.tableLoading = false
+  if (code === 200) {
+    state.dataSource = (data.domains || []).map((el, index) => {
+      el.indexNum = index + 1
+      return el
+    })
+    qrcode.value = data.qrCodeUrl
+  } else {
+    message.error(message || '请求失败')
+  }
+}
+// 使码失效
+const OffQrcode = async (reocrd: any) => {
+  // let res = await QrcodeApi.getQrcodeOff()
+  console.log('这个接口不行')
+}
+
+const closeQrcode = (reocrd) => {
+  Modal.confirm({
+    title: '提示',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: '失效后无法引流，确定要失效吗？',
+    okText: '确认',
+    cancelText: '取消',
+    onOk() {
+      OffQrcode(reocrd)
     },
-    {
-      indexNum: 2,
-      id: 2,
-      orion: '活码',
-      status: 2,
-      updateTime: '2024-13-13 13:13:13',
-      note: 'xxx'
-    }
-  ]
-  console.log('qrcode', state)
+    onCancel() {}
+  })
 }
 
 onMounted(() => {
-  initData()
+  getQrcodeList()
 })
 </script>
 <style lang="less" scoped>
