@@ -155,7 +155,7 @@ import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import type { Rule } from 'ant-design-vue/es/form'
 import ls from '@/utils/Storage'
-import { message } from 'ant-design-vue'
+import { message as Message } from 'ant-design-vue'
 
 const router = useRouter()
 
@@ -215,9 +215,10 @@ const loginHandle = async () => {
   let { code, data, message }: any = await UserApi.userLogin(params)
   if (code === 200) {
     ls.set('token', data.token)
+    ls.set('cdnDomain', data.cdnDomain)
     router.push({ path: '/qrCode' })
   } else {
-    message.error(message || '请求失败')
+    Message.error(message || '请求失败')
   }
 }
 const loginSubmit = (type: string) => {
