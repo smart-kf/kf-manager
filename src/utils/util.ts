@@ -196,3 +196,8 @@ export function deepDiffKeys(obj1, obj2) {
   deepCompare(obj1, obj2, 'root')
   return diffKeys
 }
+
+export function mergeCdn(path){
+  const {value} = JSON.parse(localStorage.getItem('cdnDomain'))
+  return `${value}${path}`
+}
