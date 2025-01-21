@@ -110,7 +110,7 @@ export const getWeek = (week: number, useZhou) => {
 
 export const isDev = (import.meta as any).env.VITE_DEV
 
-export const baseURL = !isDev ? 'https://api.smartkf.top/' : 'https://api.smartkf.top/'
+export const baseURL = !isDev ? 'https://api.smartkf.top/' : ''
 
 export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {
   if (!date) return null

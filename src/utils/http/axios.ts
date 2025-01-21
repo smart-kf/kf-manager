@@ -15,7 +15,7 @@ const baseService = axios.create({
   baseURL,
   timeout: 60000,
   responseType: 'json',
-  withCredentials: false,
+  withCredentials: true,
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   }
