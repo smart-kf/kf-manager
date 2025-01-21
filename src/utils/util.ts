@@ -197,7 +197,7 @@ export function deepDiffKeys(obj1, obj2) {
   return diffKeys
 }
 
-export function mergeCdn(path){
-  const {value} = JSON.parse(localStorage.getItem('cdnDomain'))
+export function mergeCdn(path) {
+  const { value } = JSON.parse(localStorage.getItem('cdnDomain'))
   return `${value}${path}`
 }
