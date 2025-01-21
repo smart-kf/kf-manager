@@ -110,7 +110,7 @@ export const getWeek = (week: number, useZhou) => {
 
 export const isDev = (import.meta as any).env.VITE_DEV
 
-export const baseURL = isDev ? '/api' : (import.meta as any).env.VITE_BASE_URL
+export const baseURL = isDev ? '' : (import.meta as any).env.VITE_BASE_URL
 
 export function toLocalTimeStr({ date, format = 'YYYY-MM-DD HH:mm:ss' }) {
   if (!date) return null
@@ -195,4 +195,9 @@ export function deepDiffKeys(obj1, obj2) {
 
   deepCompare(obj1, obj2, 'root')
   return diffKeys
+}
+
+export function mergeCdn(path) {
+  const { value } = JSON.parse(localStorage.getItem('cdnDomain'))
+  return `${value}${path}`
 }

@@ -223,7 +223,7 @@ onMounted(() => {
 
   wsClient.onMessage(res=>{
     console.log('接收到啦：',res);
-    
+    messages.value.push(JSON.parse(JSON.stringify(res)));
   })
 
   // wsClient.onMessage((res)=>{

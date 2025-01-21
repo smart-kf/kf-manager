@@ -4,20 +4,51 @@
       <img src="@/assets/login-logo.png" />
     </div>
     <div class="user-layout-login">
-      <a-form id="formLogin" :model="formData" ref="loginFormRef" :rules="loginRules" @finish="loginHandle">
-        <a-form-item name="userNum">
-          <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.userNum" />
-        </a-form-item>
-        <a-form-item name="password">
-          <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
-        </a-form-item>
-        <a-form-item name="agree">
-          <a-checkbox-group v-model:value="formData.agree"> <a-checkbox :value="true"></a-checkbox> <span> 请阅读并同意 </span><a @click="showAgreement">《用户协议&隐私政策》 </a> </a-checkbox-group>
-        </a-form-item>
-        <a-form-item>
-          <a-button type="primary" class="login-button" html-type="submit" :loading="state.loginBtn" :disabled="state.loginBtn">登录</a-button>
-        </a-form-item>
-      </a-form>
+      <a-tabs :activeKey="customActiveKey" centered class="login-tab" @change="handleTabClick">
+        <!-- 账户密码登录 -->
+        <a-tab-pane key="login" tab="卡密登录">
+          <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
+            <a-form-item name="cardID">
+              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
+            </a-form-item>
+            <a-form-item name="password">
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+            </a-form-item>
+            <a-form-item name="agree">
+              <a-checkbox-group v-model:value="formData.agree">
+                <a-checkbox :value="true"></a-checkbox> <span> 请阅读并同意 </span><a @click="showAgreement">《用户协议&隐私政策》 </a>
+              </a-checkbox-group>
+            </a-form-item>
+            <a-form-item>
+              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
+        <a-tab-pane key="renew" tab="卡密续费">
+          <a-form id="formLogin" ref="renewFormRef" :model="formData" :rules="renewRules">
+            <a-form-item name="cardID">
+              <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
+            </a-form-item>
+            <a-form-item name="newUserNum">
+              <a-input type="text" placeholder="请输入新卡卡密" allowClear :maxlength="150" v-model:value="formData.newUserNum" />
+            </a-form-item>
+            <a-form-item name="password">
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+            </a-form-item>
+            <a-form-item>
+              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('renew')">续费</a-button>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
+        <a-tab-pane key="other" tab="快捷入口">
+          <div class="other-btn">
+            <a-button>卡密状态查询</a-button>
+          </div>
+          <div class="other-btn">
+            <a-button>用户IP查询</a-button>
+          </div>
+        </a-tab-pane>
+      </a-tabs>
     </div>
     <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
       <div class="agreement-content">
@@ -124,6 +155,7 @@ import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import type { Rule } from 'ant-design-vue/es/form'
 import ls from '@/utils/Storage'
+import { message as Message } from 'ant-design-vue'
 
 const router = useRouter()
 
@@ -139,7 +171,7 @@ const renewFormRef: any = ref(null)
 
 // 表单信息
 const formData: any = reactive({
-  userNum: '', // 卡密
+  cardID: '', // 卡密
   password: '',
   newUserNum: '', // 续费卡号
   agree: [] // 是否统同意协议
@@ -150,13 +182,13 @@ const customActiveKey = ref<string>('login')
 
 // 表单校验
 const loginRules: Record<string, Rule[]> = {
-  userNum: [{ required: true, message: '请输入登录卡密' }],
+  cardID: [{ required: true, message: '请输入登录卡密' }],
   agree: [{ required: true, message: '请勾选协议', trigger: 'change' }]
 }
 
 // 表单校验
 const renewRules: Record<string, Rule[]> = {
-  userNum: [{ required: true, message: '请输入原卡卡密' }],
+  cardID: [{ required: true, message: '请输入原卡卡密' }],
   newUserNum: [{ required: true, message: '请输入新卡卡密' }]
 }
 
@@ -174,12 +206,41 @@ const showAgreement = () => {
   state.showAgreementDia = true
 }
 const loginHandle = async () => {
-  ls.set('token', 'xxx')
-  router.push({ path: '/' })
+  let params = {
+    captchaCode: '',
+    captchaId: '',
+    cardID: formData.cardID,
+    password: ''
+  }
+  let { code, data, message }: any = await UserApi.userLogin(params)
+  if (code === 200) {
+    ls.set('token', data.token)
+    ls.set('cdnDomain', data.cdnDomain)
+    router.push({ path: '/qrCode' })
+  } else {
+    Message.error(message || '请求失败')
+  }
 }
-const renewHandle = async () => {
-  ls.set('token', 'xxx')
-  router.push({ path: '/' })
+const loginSubmit = (type: string) => {
+  if (type === 'login') {
+    loginFormRef.value
+      .validate()
+      .then(() => {
+        loginHandle()
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  } else {
+    renewFormRef.value
+      .validate()
+      .then(() => {
+        console.log(formData)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
 }
 
 // 初始化信息

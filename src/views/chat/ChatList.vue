@@ -12,7 +12,7 @@
   
       <!-- Tab 切换 -->
       <div class="tabs">
-        <a-tabs v-model:activeKey="activeTab" style="width: 100%;">
+        <a-tabs v-model:activeKey="listType" style="width: 100%;">
             <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
         </a-tabs>
       </div>
@@ -20,21 +20,21 @@
       <!-- 聊天列表 -->
       <div class="chat-list">
         <div 
-          v-for="chat in filteredChats" 
-          :key="chat.id" 
+          v-for="chat in chatsList" 
+          :key="chat.user.uuid" 
           class="chat-item" @click="onChangeChat(chat)">
           <div class="chat-left">
-            <img :src="chat.externalUser.avatar" alt="Avatar" class="avatar" />
+            <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" class="avatar" />
             <div class="chat-info">
-              <span class="name">{{ chat.externalUser.nickName }}</span>
-              <p class="last-message">{{ chat.lastMessage.content.text.content }}</p>
+              <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
+              <p class="last-message">{{ chat.lastMessage }}</p>
             </div>
           </div>
           <div class="chat-right">
-            <span class="status" :class="{ online: chat.externalUser.isOnline }">
-              {{ chat.isOnline ? '在线' : '离线' }}
+            <span class="status" :class="{ online: chat.user.isOnline }">
+              {{ chat.user.isOnline ? '在线' : '离线' }}
             </span>
-            <span class="time">{{ dayjs(chat.lastChatAt).format('HH:mm') }}</span>
+            <span class="time">{{ chat.lastChatAt ? dayjs(chat.lastChatAt).format('HH:mm') : '' }}</span>
           </div>
         </div>
       </div>
@@ -44,11 +44,13 @@
   
 <script setup>
 import { ref, computed, defineEmits, onMounted } from 'vue';
-import baseService from '@/utils/http/axios'
 import dayjs from 'dayjs'
+import { ChatApi } from '@/webapi/index'
+import { message } from 'ant-design-vue';
+import { mergeCdn } from '@/utils/util.ts'
 
 const searchBy = ref('');
-const activeTab = ref(0);
+const listType = ref(0);
 const scrollID = ref('')
 
 const tabs = [
@@ -57,64 +59,64 @@ const tabs = [
     { label: '拉黑', value: 2 },
 ];
 
-const chats = ref([
-    {
-        externalUser: {
-            nickName: 'Alice',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: true,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'Hey, how are you?'
-                }
-            }
-        },
-    },
-    {
-        externalUser: {
-            nickName: 'Bob',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: false,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'See you tomorrow!'
-                }
-            }
-        },
-    },
-    {
-        externalUser: {
-            nickName: 'Charlie',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: false,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'Blocked user.'
-                }
-            }
-        },
-    },
+const chatsList = ref([
+    // {
+    //     externalUser: {
+    //         nickName: 'Alice',
+    //         avatar: 'https: //via.placeholder.com/40',
+    //         isOnline: true,
+    //     },
+    //     lastMessage: {
+    //         from: '',
+    //         fromType: '',
+    //         to: '',
+    //         toType: '',
+    //         content: {
+    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
+    //             text: {
+    //                 content: 'Hey, how are you?'
+    //             }
+    //         }
+    //     },
+    // },
+    // {
+    //     externalUser: {
+    //         nickName: 'Bob',
+    //         avatar: 'https: //via.placeholder.com/40',
+    //         isOnline: false,
+    //     },
+    //     lastMessage: {
+    //         from: '',
+    //         fromType: '',
+    //         to: '',
+    //         toType: '',
+    //         content: {
+    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
+    //             text: {
+    //                 content: 'See you tomorrow!'
+    //             }
+    //         }
+    //     },
+    // },
+    // {
+    //     externalUser: {
+    //         nickName: 'Charlie',
+    //         avatar: 'https: //via.placeholder.com/40',
+    //         isOnline: false,
+    //     },
+    //     lastMessage: {
+    //         from: '',
+    //         fromType: '',
+    //         to: '',
+    //         toType: '',
+    //         content: {
+    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
+    //             text: {
+    //                 content: 'Blocked user.'
+    //             }
+    //         }
+    //     },
+    // },
     
     // {
     //     id: 3,
@@ -133,11 +135,11 @@ const filteredChats = computed(() => {
 
 const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
-    console.log('onChangeChat:',chat);
-    emits('on-change-chat',chat)
+    // console.log('onChangeChat:',chat);
+    // emits('on-change-chat',chat)
 }
 
-onChangeChat(chats.value[0])
+// onChangeChat(chats.value[0])
 
 
 const onSearch = ()=>{
@@ -146,18 +148,31 @@ const onSearch = ()=>{
 
 const getChatList = async ()=>{
     const params = {
-        searchBy: searchBy.value,
-        listType: activeTab.value,
-        scrollID: scrollID.value
+      ScrollReques: {
+        asc: true,
+        pageSize: 20,
+        scrollID: {},
+        sorters: [
+          {
+            Asc: true,
+            Key: ""
+          }
+        ]
+      },
+      listType: listType.value,
+      searchBy: searchBy.value
     }
-    const api = ''
-    // TODO 发请求
-    const res = await baseService.post(api,params)
-        const {chats} = res
-        chats.value = res.chats || []
+    const res = await ChatApi.chatListPost(params)
+    if(res && res.code === 200){
+      const {chats} = res.data
+      console.log('chats:',chats);
+      chatsList.value = chats
+    }else{
+      message.error(res.message || '请求失败，请联系管理员');
+    }
 }
 onMounted(()=>{
-    // getChatList()
+    getChatList()
 })
 
 
