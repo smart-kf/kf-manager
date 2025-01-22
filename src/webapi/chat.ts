@@ -7,3 +7,8 @@ export const chatListPost = (data: any) => {
 export const chatMsgPost = (data: any) => {
     return baseService.post(`api/kf-be/chat/msgs`, data)
 }
+
+export const chatUserGet = (uuid: any) => {
+    return baseService.get(`api/kf-be/user?uuid=${uuid}`,{})
+}
+

@@ -2,12 +2,14 @@
     <div class="chat-container">
         <ChatList @onChangeChat="onChangeChat"/>
         <ChatRoom :toUser="toUser"/>
+        <ChatUser :toUser="toUser"/>
     </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import ChatList from './ChatList.vue'
 import ChatRoom from './ChatRoom.vue'
+import ChatUser from './chatUser.vue'
 
 const toUser = ref()
 

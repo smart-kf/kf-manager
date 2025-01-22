@@ -77,11 +77,18 @@ const { toUser } = toRefs(props)
 watch(()=>props.toUser,()=>{
   if(toUser.value?.user?.uuid){
     getChatMsg()
+    getChatUser(toUser.value.user.uuid)
   }
 },{
   deep: true,
   immediate: true
 })
+
+const getChatUser = async (uuid)=>{
+  const params = {uuid}
+  const res = await ChatApi.chatUserGet(uuid)
+  console.log('res:',res);
+}
 
 
 
