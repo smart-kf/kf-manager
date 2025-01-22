@@ -20,7 +20,7 @@
               </a-checkbox-group>
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('login')">登录</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading" @click="loginSubmit('login')">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -36,7 +36,7 @@
               <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loginBtn" :disabled="state.loginBtn" @click="loginSubmit('renew')">续费</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading" @click="loginSubmit('renew')">续费</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -160,10 +160,7 @@ import { message as Message } from 'ant-design-vue'
 const router = useRouter()
 
 const state = reactive({
-  time: 60,
-  loginBtn: false,
-  loginType: 0,
-  smsSendBtn: false,
+  loading: false,
   showAgreementDia: false
 })
 const loginFormRef: any = ref(null)
@@ -212,11 +209,13 @@ const loginHandle = async () => {
     cardID: formData.cardID,
     password: ''
   }
+  state.loading = true
   let { code, data, message }: any = await UserApi.userLogin(params)
+  state.loading = false
   if (code === 200) {
     ls.set('token', data.token)
     ls.set('cdnDomain', data.cdnDomain)
-    router.push({ path: '/qrCode' })
+    router.push({ path: '/' })
   } else {
     Message.error(message || '请求失败')
   }
@@ -243,18 +242,7 @@ const loginSubmit = (type: string) => {
   }
 }
 
-// 初始化信息
-const initData = () => {
-  // getCaptchaId()
-}
-const getCaptchaId = async () => {
-  let res = await UserApi.getCaptchaId()
-  console.log(res)
-}
-
-onMounted(() => {
-  initData()
-})
+onMounted(() => {})
 </script>
 
 <style lang="less" scoped>
