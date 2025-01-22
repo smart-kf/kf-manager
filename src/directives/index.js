@@ -1,9 +1,13 @@
 import focus from './focus'
+import scroll from './scroll';
+import scrollToTop from './scrollToTop';
 
 
 // 指令对象
 const directives = {
-    focus
+    focus,
+    scroll,
+    scrollToTop
 };
 
 export default {
