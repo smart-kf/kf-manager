@@ -8,7 +8,7 @@ import i18n from '@/locales/useI18n'
 import 'virtual:svg-icons-register'
 
 import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/reset.css'
+import 'ant-design-vue/dist/antd.css'
 import '@/utils/default-passive-events'
 import IconFont from '@/components/IconFont/index.vue'
 

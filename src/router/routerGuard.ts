@@ -17,25 +17,19 @@ export const setupBeforeEach = (router: Router) => {
     setDocumentTitle(to) // 设置页面标题
     const token = ls.get('token')
     if (token) {
-      /* has token */
       if (to.path === '/user/login') {
         ls.remove('token')
         next()
         NProgress.done()
       } else {
-        const canAccess = true
-        if (canAccess) {
-          next()
-        } else {
-          next({ path: '/exception/403' })
-        }
+        next()
       }
     } else {
       if (whiteList.includes(to.name as any)) {
         // 在免登录白名单，直接进入
         next()
       } else {
-        next({ path: '/user/login', query: { redirect: to.fullPath } })
+        next({ path: '/user/login' })
         NProgress.done() // if current page is login will not trigger afterEach hook, so manually handle it
       }
     }

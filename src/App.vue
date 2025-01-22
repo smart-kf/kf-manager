@@ -3,7 +3,7 @@
     :locale="lang[locale]"
     :theme="{
       token: {
-        colorPrimary: systemConfig.color,
+        primaryColor: systemConfig.color,
         borderRadius: 2
       }
     }"
