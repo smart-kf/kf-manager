@@ -12,13 +12,13 @@
   
       <!-- Tab 切换 -->
       <div class="tabs">
-        <a-tabs v-model:activeKey="listType" style="width: 100%;">
+        <a-tabs v-model:activeKey="listType" @change="onChangeTab" style="width: 100%;">
             <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
         </a-tabs>
       </div>
 
       <!-- 聊天列表 -->
-      <div class="chat-list">
+      <div v-scroll="handleScroll" class="chat-list">
         <div 
           v-for="chat in chatsList" 
           :key="chat.user.uuid" 
@@ -48,6 +48,7 @@ import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
+import { throttle } from 'lodash-es'
 
 const searchBy = ref('');
 const listType = ref(0);
@@ -135,23 +136,37 @@ const filteredChats = computed(() => {
 
 const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
-    // console.log('onChangeChat:',chat);
-    // emits('on-change-chat',chat)
+    console.log('onChangeChat:',chat);
+    emits('on-change-chat',chat)
 }
 
 // onChangeChat(chats.value[0])
 
 
 const onSearch = ()=>{
-
+  chatsList.value = []
+  getChatList('')
 }
 
-const getChatList = async ()=>{
+const onChangeTab = ()=>{
+  chatsList.value = []
+  getChatList('')
+}
+
+const handleScroll = throttle(()=>{
+  const idx = chatsList.value.length - 1
+  const scrollId = chatsList.value[idx].user.uuid
+  getChatList(scrollId)
+},500)
+
+const getChatList = async (scrollId)=>{
     const params = {
       ScrollReques: {
         asc: true,
         pageSize: 20,
-        scrollID: {},
+        scrollID: {
+          description: scrollId
+        },
         sorters: [
           {
             Asc: true,
@@ -164,15 +179,15 @@ const getChatList = async ()=>{
     }
     const res = await ChatApi.chatListPost(params)
     if(res && res.code === 200){
-      const {chats} = res.data
+      const { chats=[] } = res.data
       console.log('chats:',chats);
-      chatsList.value = chats
+      chatsList.value = [...chatsList.value, ...chats]
     }else{
       message.error(res.message || '请求失败，请联系管理员');
     }
 }
 onMounted(()=>{
-    getChatList()
+    getChatList('')
 })
 
 

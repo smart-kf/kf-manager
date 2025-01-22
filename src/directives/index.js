@@ -1,9 +1,11 @@
 import focus from './focus'
+import scroll from './scroll';
 
 
 // 指令对象
 const directives = {
-    focus
+    focus,
+    scroll
 };
 
 export default {

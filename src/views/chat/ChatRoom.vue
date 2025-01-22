@@ -4,14 +4,14 @@
       <div class="info-container">
         <!-- 第一行: 昵称和IP -->
         <div class="info-row">
-        <span class="nickname">{{ toUser.externalUser.nickName }}</span>
-        <span class="ip">{{ toUser.ip || '0.0.0.0' }}</span>
+        <span class="nickname">{{ toUser?.user?.nickName }}</span>
+        <span class="ip">{{ toUser?.user?.ip || '0.0.0.0' }}</span>
         </div>
         <!-- 第二行: 系统类型、系统版本、网络类型 -->
         <div class="info-row">
-        <span class="system-type">系统类型：{{ clientInfo.system }}</span>
-        <span class="system-version">系统版本：{{ clientInfo.system }}</span>
-        <span class="network-type">网络类型：{{ clientInfo.networkType }}</span>
+        <span class="system-type">系统类型：{{ toUser?.user?.device }}</span>
+        <span class="system-version">系统版本：{{ toUser?.user?.browser }}</span>
+        <span class="network-type">网络类型：{{ toUser?.user?.networkType }}</span>
         </div>
     </div>
 
@@ -29,7 +29,8 @@
           <div class="message-content">
             <p v-if="message.msgType === 'text'">{{ message.content }}</p>
             <video v-if="message.msgType === 'video'" :src="message.content" controls class="video-box"></video>
-            <img v-if="message.msgType === 'image'" :src="message.content"  class="image-box" />
+            <a-image v-if="message.msgType === 'image'" :width="200" :src="message.content" class="image-box"/>
+            <!-- <img v-if="message.msgType === 'image'" :src="'https://cdn.smartkf.top/static/avatar/guest.png'"   @click="onViewImg(message.content)"/> -->
             <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
           </div>
         </div>
@@ -50,33 +51,21 @@
   </template>
   
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs } from 'vue';
+import { ref, onMounted, nextTick, defineProps, toRefs,watch } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+import { ChatApi } from '@/webapi/index'
+import { message } from 'ant-design-vue';
 
 const props = defineProps({
   toUser:{
     type: Object,
     default: ()=>({
-      externalUser: {
-          nickName: '',
-          avatar: '',
-          isOnline: true,
-      },
-      lastMessage: {
-          from: '',
-          fromType: '',
-          to: '',
-          toType: '',
-          content: {
-              type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-              text: {
-                  content: 'Hey, how are you?'
-              }
-          }
-      },
+      user:{},
+      lastChatAt: 0,
+      lastMessage: null
     })
   }
 })
@@ -84,10 +73,15 @@ const props = defineProps({
 
 const { toUser } = toRefs(props)
 
-const clientInfo = ref({
-    system: 'Unknown',
-    networkType: 'Unknown'
+watch(()=>props.toUser,()=>{
+  if(toUser.value?.user?.uuid){
+    getChatMsg()
+  }
+},{
+  deep: true,
+  immediate: true
 })
+
 
 
 // ws实例
@@ -194,25 +188,44 @@ const selectFile = (type) => {
   };
   input.click();
 };
-      
-// 获取客户端信息
-const getClientInfo = ()=>{
-    // 获取系统信息
-    const userAgent = navigator.userAgent;
-    if (/Windows NT/i.test(userAgent)) clientInfo.value.system = "Windows";
-    else if (/Mac OS/i.test(userAgent)) clientInfo.value.system = "macOS";
-    else if (/Android/i.test(userAgent)) clientInfo.value.system = "Android";
-    else if (/iPhone|iPad|iPod/i.test(userAgent)) clientInfo.value.system = "iOS";
 
-    // 获取网络类型
-    const networkType = navigator.connection?.effectiveType || "Unknown";
-    clientInfo.value.networkType = networkType
+const getChatMsg = async(scrollId)=>{
+  const params = {
+    ScrollRequest: {
+      "asc": true,
+      "pageSize": 20,
+      "scrollID": {
+        description: scrollId
+      },
+      "sorters": [
+        {
+          "Asc": true,
+          "Key": "string"
+        }
+      ]
+    },
+    guestId: toUser.value.user.uuid
+  }
+  const res = await ChatApi.chatMsgPost(params)
+  console.log('res:',res);
+  if(res&&res.code === 200){
+    messages.value = [...res.data?.messages, ...messages.value]
+    
+    if(!scrollId){
+      setTimeout(() => {
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+      }, 500);
+    }
+  }else{
+    message.error(res.message || '请求失败，请联系管理员');
+  }
+  
 }
+   
         
   
 // 自动滚动到最新消息
 onMounted(() => {
-  getClientInfo()
 
   nextTick(() => {
     messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
@@ -346,7 +359,7 @@ onMounted(() => {
   .image-box{
     width: 200px;
     height: 200px;
-    object-fit: contain;
+    object-fit: cover;
   }
 
 }
