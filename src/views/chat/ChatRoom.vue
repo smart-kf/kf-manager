@@ -16,7 +16,7 @@
     </div>
 
       <!-- 消息展示区域 -->
-      <div class="message-display" ref="messageDisplay">
+      <div v-scroll-to-top="loadHistoryMsg" class="message-display" ref="messageDisplay">
         <div
           v-for="(message, index) in messages"
           :key="index"
@@ -58,6 +58,7 @@ import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
+import { throttle } from 'lodash-es'
 
 const props = defineProps({
   toUser:{
@@ -221,6 +222,11 @@ const getChatMsg = async(scrollId)=>{
   }
   
 }
+
+const loadHistoryMsg = throttle(()=>{
+  const scrollId = messages.value[0].msgId
+  getChatMsg(scrollId)
+},500)
    
         
   
