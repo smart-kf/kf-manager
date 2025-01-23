@@ -5,6 +5,13 @@
             <a-tabs v-model:activeKey="activeKey" style="width: 100%;">
                 <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
             </a-tabs>
+            <div v-if="activeKey===0" v-for="item in labels" class="item">
+                <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
+                <span style="margin-left: 10px;">{{ toUser.user[item.key] }}</span>
+            </div>
+            <div v-if="activeKey===1" class="item">
+                功能待上线，敬请期待！
+            </div>
         </div>
     </div>
 </template>
@@ -32,6 +39,19 @@ const tabs = [
 
 const activeKey = ref(0)
 
+const labels = [
+    {key:'ip',label: '注册IP',},
+    {key:'area',label: 'IP地区'},
+    {key:'label',label: '注册时间'},
+    {key:'offlineAt',label:   '离线时间'},
+    {key:'device',label:  '系统类型'},
+    {key:'browser',label: '系统版本'},
+    {key:'networkType',label: '网络类型'},
+    {key:'scanCount',label: '扫码次数'},
+    // {label: '聊天置顶'},
+    // {label: '用户拉黑'},
+]
+
 
 
 
@@ -51,5 +71,14 @@ const activeKey = ref(0)
         padding: 0 10px;
         height: 53px;
     }   
+
+    .item{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 6px 10px;
+        color: #888;
+        cursor: pointer;
+    }
 }
 </style>

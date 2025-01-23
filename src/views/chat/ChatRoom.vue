@@ -1,10 +1,11 @@
 <template>
+  <div style="display: flex;flex: 1;">
     <div class="chatroom-contain">
       <!-- 消息来源 -->
-      <div class="info-container">
+      <div v-if="toUser?.user?.nickName" class="info-container">
         <!-- 第一行: 昵称和IP -->
         <div class="info-row">
-        <span class="nickname">{{ toUser?.user?.nickName }}</span>
+        <span class="nickname">{{ toUser.user.nickName }}</span>
         <span class="ip">{{ toUser?.user?.ip || '0.0.0.0' }}</span>
         </div>
         <!-- 第二行: 系统类型、系统版本、网络类型 -->
@@ -20,17 +21,19 @@
         <div
           v-for="(message, index) in messages"
           :key="index"
-          :class="['message', message.isKf == '1' ? 'right' : '']"
+          :class="['message', message.isKf == 1 ? 'right' : '']"
         >
           <div class="avatar-and-name">
-            <span class="name">{{ message.isKf === '1' ? '' : message.guestName }}</span>
-            <img :src="message.guestAvatar" alt="Avatar" />
+            <span class="name">{{ message.isKf === 1 ? '' : message.guestName }}</span>
+            <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
           </div>
           <div class="message-content">
             <p v-if="message.msgType === 'text'">{{ message.content }}</p>
-            <video v-if="message.msgType === 'video'" :src="message.content" controls class="video-box"></video>
+            <div v-if="message.msgType === 'video'" class="video-contain">
+              <video :src="message.content" class="video-box"></video>
+              <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)"/>
+            </div>
             <a-image v-if="message.msgType === 'image'" :width="200" :src="message.content" class="image-box"/>
-            <!-- <img v-if="message.msgType === 'image'" :src="'https://cdn.smartkf.top/static/avatar/guest.png'"   @click="onViewImg(message.content)"/> -->
             <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
           </div>
         </div>
@@ -48,6 +51,23 @@
 
       
     </div>
+    <ChatUser v-if="toUser?.user?.nickName" :toUser="toUser"/>
+    <a-modal
+      title="视频播放"
+      :visible="visible"
+      :footer="null"
+    >
+      <!-- 视频播放区域 -->
+      <template #content>
+        <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
+        <video :src="videoUrl" width="640" height="360" autoplay controls>
+          <!-- 替换为你的视频文件地址 -->
+          <!-- <source >
+          你的浏览器不支持视频播放。 -->
+        </video>
+      </template>
+    </a-modal>
+  </div>
   </template>
   
 <script setup>
@@ -59,6 +79,10 @@ import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
+import { mergeCdn } from '@/utils/util.ts'
+import defaultUser from '@/assets/defaultUser.png'
+import ChatUser from './chatUser.vue'
+import { PlayCircleOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
   toUser:{
@@ -70,7 +94,6 @@ const props = defineProps({
     })
   }
 })
-
 
 const { toUser } = toRefs(props)
 
@@ -89,6 +112,8 @@ const getChatUser = async (uuid)=>{
   const res = await ChatApi.chatUserGet(uuid)
   console.log('res:',res);
 }
+
+const kfAvatar = defaultUser
 
 
 
@@ -139,7 +164,13 @@ const newMessage = ref({
 const messageDisplay = ref(null);
   
 // 回车，发送消息
-const sendMessage = () => {
+const sendMessage = (event) => {
+  // 阻止默认的换行行为
+  event.preventDefault();
+  if(!toUser.value?.user?.uuid){
+    message.error('请选中聊天粉丝')
+    return
+  }
   const messageText = newMessage.value.content.trim();
   if (messageText) {
     newMessage.value.msgType = 'text'
@@ -234,7 +265,13 @@ const loadHistoryMsg = throttle(()=>{
   const scrollId = messages.value[0].msgId
   getChatMsg(scrollId)
 },500)
-   
+
+const visible = ref(false)
+const videoUrl = ref('')
+const playVideo = (url)=>{
+  videoUrl.value = url
+  visible.value = true
+}
         
   
 // 自动滚动到最新消息
@@ -364,10 +401,24 @@ onMounted(() => {
     margin-bottom: 0;
   }
 
-  .video-box{
-    width: 200px;
-    height: 120px;
+  .video-contain{
+    position: relative;
+    .video-box{
+      width: 200px;
+      height: 120px;
+    }
+    .play-icon{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      color: #fff;
+      font-size: 36px;
+      background: #ccc;
+      border-radius: 50%;
+    }
   }
+  
 
   .image-box{
     width: 200px;

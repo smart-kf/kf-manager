@@ -22,9 +22,9 @@
         <div 
           v-for="chat in chatsList" 
           :key="chat.user.uuid" 
-          class="chat-item" @click="onChangeChat(chat)">
+          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'']" @click="onChangeChat(chat)">
           <div class="chat-left">
-            <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" class="avatar" />
+            <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
             <div class="chat-info">
               <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
               <p class="last-message">{{ chat.lastMessage }}</p>
@@ -43,7 +43,7 @@
   </template>
   
 <script setup>
-import { ref, computed, defineEmits, onMounted } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
@@ -52,7 +52,7 @@ import { throttle } from 'lodash-es'
 
 const searchBy = ref('');
 const listType = ref(0);
-const scrollID = ref('')
+const selectChatId = ref('')
 
 const tabs = [
     { label: '全部', value: 0 },
@@ -60,87 +60,13 @@ const tabs = [
     { label: '拉黑', value: 2 },
 ];
 
-const chatsList = ref([
-    // {
-    //     externalUser: {
-    //         nickName: 'Alice',
-    //         avatar: 'https: //via.placeholder.com/40',
-    //         isOnline: true,
-    //     },
-    //     lastMessage: {
-    //         from: '',
-    //         fromType: '',
-    //         to: '',
-    //         toType: '',
-    //         content: {
-    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-    //             text: {
-    //                 content: 'Hey, how are you?'
-    //             }
-    //         }
-    //     },
-    // },
-    // {
-    //     externalUser: {
-    //         nickName: 'Bob',
-    //         avatar: 'https: //via.placeholder.com/40',
-    //         isOnline: false,
-    //     },
-    //     lastMessage: {
-    //         from: '',
-    //         fromType: '',
-    //         to: '',
-    //         toType: '',
-    //         content: {
-    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-    //             text: {
-    //                 content: 'See you tomorrow!'
-    //             }
-    //         }
-    //     },
-    // },
-    // {
-    //     externalUser: {
-    //         nickName: 'Charlie',
-    //         avatar: 'https: //via.placeholder.com/40',
-    //         isOnline: false,
-    //     },
-    //     lastMessage: {
-    //         from: '',
-    //         fromType: '',
-    //         to: '',
-    //         toType: '',
-    //         content: {
-    //             type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-    //             text: {
-    //                 content: 'Blocked user.'
-    //             }
-    //         }
-    //     },
-    // },
-    
-    // {
-    //     id: 3,
-    //     avatar: 'https://via.placeholder.com/40',
-    //     name: 'Charlie',
-    //     lastMessage: 'Blocked user.',
-    //     time: 'Yesterday',
-    //     isOnline: false,
-    //     status: 'blocked',
-    // },
-]);
-
-const filteredChats = computed(() => {
-    return chats.value
-});
+const chatsList = ref([]);
 
 const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
-    console.log('onChangeChat:',chat);
+    selectChatId.value = chat.user.uuid
     emits('on-change-chat',chat)
 }
-
-// onChangeChat(chats.value[0])
 
 
 const onSearch = ()=>{
@@ -208,6 +134,10 @@ onMounted(()=>{
     :deep(.ant-tabs-top >.ant-tabs-nav){
       margin: 0;
     }
+
+    :deep(.ant-tabs-nav::before){
+      border-bottom: 0;
+    }
   }
   
   /* 搜索框 */
@@ -253,7 +183,6 @@ onMounted(()=>{
   .chat-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 10px;
   }
   
   .chat-item {
@@ -263,7 +192,25 @@ onMounted(()=>{
     padding: 6px 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
+    &:hover {
+      background-color: #e6f4ff;
+        // background-color: rgba(173, 216, 230, 0.5);
+    }
   }
+
+  .select-item{
+    position: relative;
+  }
+  .select-item::before{
+      position: absolute;
+      width: 4px;
+      height: 100%;
+      background-color: #1890ff;
+      // background: rgba(173, 216, 230, 0.5);
+      top: 0;
+      left: 0;
+      content: "";
+    }
   
   .chat-left {
     display: flex;
@@ -272,9 +219,15 @@ onMounted(()=>{
   }
   
   .avatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    border: 2px solid greenyellow;
+    margin-left: 8px;
+  }
+  .offline-avatar{
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
   }
   
   .chat-info {
