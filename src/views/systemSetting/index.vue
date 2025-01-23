@@ -2,44 +2,46 @@
 <template>
   <div class="kf-body">
     <a-spin :spinning="state.loading">
-      <div class="base-info">
-        <a-form name="basic" ref="formRef" :model="formData" autocomplete="off" :label-col="{ span: 4 }" :rules="rules" labelAlign="right">
-          <a-form-item label="我的卡密" name="cardId"> {{ formData.cardId }} <a-button type="primary" @click="copyQrcode" size="small"> 复制 </a-button> </a-form-item>
-          <!-- <a-form-item label="到期时间" name="endTime">
+      <div class="max-containter" style="margin: auto">
+        <div class="base-info">
+          <a-form name="basic" ref="formRef" :model="formData" autocomplete="off" :label-col="{ span: 4 }" :rules="rules" labelAlign="right">
+            <a-form-item label="我的卡密" name="cardId"> {{ formData.cardId }} <a-button type="primary" @click="copyQrcode" size="small"> 复制 </a-button> </a-form-item>
+            <!-- <a-form-item label="到期时间" name="endTime">
           <span class="red-tip">{{ formData.endTime }}</span>
         </a-form-item> -->
-          <a-form-item label="客服昵称" name="nickname" require>
-            <a-input v-model:value="formData.nickname" placeholder="请输入客服昵称" maxlenght="20" style="width: 300px" />
-          </a-form-item>
-          <a-form-item label="客服头像" name="avatarUrl">
-            <a-avatar :size="80" wrap :src="getAavatarUrl(formData.avatarUrl)"> </a-avatar>
-          </a-form-item>
-          <a-form-item label="滚动公告" name="notice">
-            <a-input v-model:value="formData.notice" placeholder="请输入滚动公告" showCount maxlenght="200" style="width: 300px" />
-          </a-form-item>
-          <a-form-item label="消息提示音" name="newMessageVoice">
-            <a-radio-group v-model:value="formData.newMessageVoice" :options="state.radioOption" />
-          </a-form-item>
-          <a-form-item label="设备异常过滤" name="DeviceFilter">
-            <a-radio-group v-model:value="formData.DeviceFilter" :options="state.radioOption" />
-          </a-form-item>
-          <a-form-item label="苹果手机过滤" name="appleFilter">
-            <a-radio-group v-model:value="formData.appleFilter" :options="state.radioOption" /> <span class="red-tip">开启后，只有苹果手机能访问</span>
-          </a-form-item>
-          <a-form-item label="代理IP过滤" name="iPProxyFilter">
-            <a-radio-group v-model:value="formData.iPProxyFilter" :options="state.radioOption" /> <span class="red-tip">开启后，代理ip不能访问</span>
-          </a-form-item>
-          <a-form-item label="模拟器过滤" name="simulatorFilter">
-            <a-radio-group v-model:value="formData.simulatorFilter" :options="state.radioOption" /> <span class="red-tip">开启后，模拟器不能访问</span>
-          </a-form-item>
-          <a-form-item label="微信浏览器过滤" name="wechatFilter">
-            <a-radio-group v-model:value="formData.wechatFilter" :options="state.radioOption" /> <span class="red-tip">开启后，非微信浏览器不能访问</span>
-          </a-form-item>
-          <a-form-item label="WS过滤" name="wsFilter"> <a-radio-group v-model:value="formData.wsFilter" :options="state.radioOption" /> <span class="red-tip">开启后，检测ws行为</span> </a-form-item>
-        </a-form>
-      </div>
-      <div class="bottom-btn">
-        <a-button type="primary" @click="onSave">保存</a-button>
+            <a-form-item label="客服昵称" name="nickname" require>
+              <a-input v-model:value="formData.nickname" placeholder="请输入客服昵称" maxlenght="20" style="width: 300px" />
+            </a-form-item>
+            <a-form-item label="客服头像" name="avatarUrl">
+              <a-avatar :size="80" wrap :src="getAavatarUrl(formData.avatarUrl)"> </a-avatar>
+            </a-form-item>
+            <a-form-item label="滚动公告" name="notice">
+              <a-input v-model:value="formData.notice" placeholder="请输入滚动公告" showCount maxlenght="200" style="width: 300px" />
+            </a-form-item>
+            <a-form-item label="消息提示音" name="newMessageVoice">
+              <a-radio-group v-model:value="formData.newMessageVoice" :options="state.radioOption" />
+            </a-form-item>
+            <a-form-item label="设备异常过滤" name="DeviceFilter">
+              <a-radio-group v-model:value="formData.DeviceFilter" :options="state.radioOption" />
+            </a-form-item>
+            <a-form-item label="苹果手机过滤" name="appleFilter">
+              <a-radio-group v-model:value="formData.appleFilter" :options="state.radioOption" /> <span class="red-tip">开启后，只有苹果手机能访问</span>
+            </a-form-item>
+            <a-form-item label="代理IP过滤" name="iPProxyFilter">
+              <a-radio-group v-model:value="formData.iPProxyFilter" :options="state.radioOption" /> <span class="red-tip">开启后，代理ip不能访问</span>
+            </a-form-item>
+            <a-form-item label="模拟器过滤" name="simulatorFilter">
+              <a-radio-group v-model:value="formData.simulatorFilter" :options="state.radioOption" /> <span class="red-tip">开启后，模拟器不能访问</span>
+            </a-form-item>
+            <a-form-item label="微信浏览器过滤" name="wechatFilter">
+              <a-radio-group v-model:value="formData.wechatFilter" :options="state.radioOption" /> <span class="red-tip">开启后，非微信浏览器不能访问</span>
+            </a-form-item>
+            <a-form-item label="WS过滤" name="wsFilter"> <a-radio-group v-model:value="formData.wsFilter" :options="state.radioOption" /> <span class="red-tip">开启后，检测ws行为</span> </a-form-item>
+          </a-form>
+          <div class="bottom-btn">
+            <a-button type="primary" @click="onSave">保存</a-button>
+          </div>
+        </div>
       </div>
     </a-spin>
   </div>
@@ -149,9 +151,9 @@ onMounted(() => {
 <style lang="less" scoped>
 .base-info {
   position: relative;
-  margin-left: 30%;
   box-sizing: border-box;
-  min-width: 600px;
+  width: 600px;
+  margin: auto;
   overflow-x: auto;
   :deep(.ant-form-item) {
     margin-bottom: 16px;
