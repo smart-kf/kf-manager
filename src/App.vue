@@ -1,13 +1,5 @@
 <template>
-  <a-config-provider
-    :locale="lang[locale]"
-    :theme="{
-      token: {
-        primaryColor: systemConfig.color,
-        borderRadius: 2
-      }
-    }"
-  >
+  <a-config-provider :locale="lang[locale]">
     <!-- algorithm: theme.darkAlgorithm,夜间主题 -->
     <router-view />
   </a-config-provider>
@@ -17,11 +9,9 @@
 import zh_CN from 'ant-design-vue/es/locale/zh_CN'
 import en_US from 'ant-design-vue/es/locale/en_US'
 import { useI18n } from 'vue-i18n'
-import { useSystemStore } from '@/store/modules'
 
 const { locale } = useI18n()
 const lang = { 'en-US': en_US, 'zh-CN': zh_CN }
-const systemConfig = useSystemStore()
 </script>
 
 <style>

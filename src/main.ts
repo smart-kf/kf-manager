@@ -3,19 +3,22 @@ import App from './App.vue'
 import router from './router'
 
 import store from '@/store'
-import '@/style/global.less'
 import i18n from '@/locales/useI18n'
 import 'virtual:svg-icons-register'
 
 import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/antd.css'
+// import 'ant-design-vue/dist/antd.less'
+import '@/style/global.less'
 import '@/utils/default-passive-events'
 import IconFont from '@/components/IconFont/index.vue'
 
 import directives from '@/directives/index'
 
+import VueQrcode from 'vue-qrcode'
+
 const app = createApp(App)
 //  注册图标组件
+app.component('vue-qrcode', VueQrcode)
 app.component('IconFont', IconFont)
 
 app.use(Antd)
