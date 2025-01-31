@@ -21,6 +21,7 @@
         <div
           v-for="(message, index) in messages"
           :key="index"
+          :id="message.msgId"
           :class="['message', message.isKf == 1 ? 'right' : '']"
         >
           <div class="avatar-and-name">
@@ -74,15 +75,15 @@
 import { ref, onMounted, nextTick, defineProps, toRefs,watch } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
-import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
+import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
-import { message } from 'ant-design-vue';
+import { message, Spin } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
 import { mergeCdn } from '@/utils/util.ts'
 import defaultUser from '@/assets/defaultUser.png'
 import ChatUser from './chatUser.vue'
-import { PlayCircleOutlined } from '@ant-design/icons-vue';
+import { h } from 'vue';
 
 const props = defineProps({
   toUser:{
@@ -249,12 +250,16 @@ const getChatMsg = async(scrollId)=>{
   console.log('res:',res);
   if(res&&res.code === 200){
     messages.value = [...res.data?.messages, ...messages.value]
+    const bottomItem = res.data.messages[res.data.messages.length-1]
+    setTimeout(() => {
+      const targetElement = document.getElementById(`${bottomItem.msgId}`);
+      if (targetElement) {
+        const offsetTop = targetElement.offsetTop;
+        const offsetHeight = targetElement.offsetHeight;
+        messageDisplay.value.scrollTop = offsetTop + offsetHeight;
+      }
+    }, 500);
     
-    if(!scrollId){
-      setTimeout(() => {
-        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-      }, 500);
-    }
   }else{
     message.error(res.message || '请求失败，请联系管理员');
   }
@@ -276,6 +281,10 @@ const playVideo = (url)=>{
   
 // 自动滚动到最新消息
 onMounted(() => {
+
+  Spin.setDefaultIndicator({
+    indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
+  });
 
   nextTick(() => {
     messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
