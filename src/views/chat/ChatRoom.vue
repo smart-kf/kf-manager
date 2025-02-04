@@ -54,19 +54,19 @@
     </div>
     <ChatUser v-if="toUser?.user?.nickName" :toUser="toUser"/>
     <a-modal
-      title="视频播放"
-      :visible="visible"
+      title=""
+      v-model:visible="visible"
       :footer="null"
+      :destroyOnClose="true"
+      :maskClosable="false"
+      :width="680"
     >
-      <!-- 视频播放区域 -->
-      <template #content>
         <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
         <video :src="videoUrl" width="640" height="360" autoplay controls>
           <!-- 替换为你的视频文件地址 -->
           <!-- <source >
           你的浏览器不支持视频播放。 -->
         </video>
-      </template>
     </a-modal>
   </div>
   </template>
