@@ -204,10 +204,30 @@ const selectFile = (type) => {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = type === 'image' ? 'image/*' : 'video/*';
-  input.onchange = (event) => {
+  input.onchange = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      console.log('file:',file);
+      
         //TODO 上传至服务器，得到url后展示在消息框中
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileType', type);
+        
+        const res = await ChatApi.fileUpload(formData)
+        if(res && res.code===200 && res.data){
+          const {cdnHost,path} = res.data
+          const obj = {
+            msgType: type,
+            guestName: '',
+            guestAvatar: 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png',
+            content: `${cdnHost}${path}`,
+            msgTime: Date.now(),
+            isKf: 1
+          }
+          messages.value.push(JSON.parse(JSON.stringify(obj)));
+        }
+        
     //   const currentTime = new Date().toLocaleTimeString([], {
     //     hour: '2-digit',
     //     minute: '2-digit',
@@ -464,9 +484,10 @@ min-height: 200px;
 }
 
 .message-input .tools {
-display: flex;
-gap: 10px;
-margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .message-input .ant-input {

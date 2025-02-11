@@ -12,3 +12,7 @@ export const chatUserGet = (uuid: any) => {
     return baseService.get(`api/kf-be/user?uuid=${uuid}`,{})
 }
 
+export const fileUpload = (data: any) => {
+    return baseService.post(`api/kf-be/upload`,data)
+}
+
