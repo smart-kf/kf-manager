@@ -15,7 +15,7 @@ const baseService = axios.create({
   baseURL,
   timeout: 60000,
   responseType: 'json',
-  withCredentials: true,
+  withCredentials: false,
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   }
@@ -23,9 +23,9 @@ const baseService = axios.create({
 // request interceptor
 baseService.interceptors.request.use(
   (config) => {
-    const token = ls.get('access-token')
+    const token = ls.get('token')
     if (token) {
-      config.headers['Authorization'] = 'Bearer ' + token // 让每个请求携带自定义 token 请根据实际情况自行修改
+      config.headers['Authorization'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改
     }
     config.headers['Content-Type'] = ContentType[config.data instanceof FormData ? 'formData' : 'json']
     return config
@@ -56,7 +56,7 @@ baseService.interceptors.response.use(
         message.error('请求数据失败, 请重试!')
       } else if (status === 406) {
         message.error('登陆超时请重新登录!')
-        emitter.emit('axios_goto_login')
+        // emitter.emit('axios_goto_login')
       }
     } else if (msg) {
       if (msg === 'Network Error') {

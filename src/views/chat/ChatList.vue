@@ -12,29 +12,29 @@
   
       <!-- Tab 切换 -->
       <div class="tabs">
-        <a-tabs v-model:activeKey="activeTab" style="width: 100%;">
+        <a-tabs v-model:activeKey="listType" @change="onChangeTab" style="width: 100%;">
             <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
         </a-tabs>
       </div>
 
       <!-- 聊天列表 -->
-      <div class="chat-list">
+      <div v-scroll="handleScroll" class="chat-list">
         <div 
-          v-for="chat in filteredChats" 
-          :key="chat.id" 
-          class="chat-item" @click="onChangeChat(chat)">
+          v-for="chat in chatsList" 
+          :key="chat.user.uuid" 
+          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'']" @click="onChangeChat(chat)">
           <div class="chat-left">
-            <img :src="chat.externalUser.avatar" alt="Avatar" class="avatar" />
+            <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
             <div class="chat-info">
-              <span class="name">{{ chat.externalUser.nickName }}</span>
-              <p class="last-message">{{ chat.lastMessage.content.text.content }}</p>
+              <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
+              <p class="last-message">{{ chat.lastMessage }}</p>
             </div>
           </div>
           <div class="chat-right">
-            <span class="status" :class="{ online: chat.externalUser.isOnline }">
-              {{ chat.isOnline ? '在线' : '离线' }}
+            <span class="status" :class="{ online: chat.user.isOnline }">
+              {{ chat.user.isOnline ? '在线' : '离线' }}
             </span>
-            <span class="time">{{ dayjs(chat.lastChatAt).format('HH:mm') }}</span>
+            <span class="time">{{ chat.lastChatAt ? dayjs(chat.lastChatAt).format('HH:mm') : '' }}</span>
           </div>
         </div>
       </div>
@@ -43,13 +43,16 @@
   </template>
   
 <script setup>
-import { ref, computed, defineEmits, onMounted } from 'vue';
-import baseService from '@/utils/http/axios'
+import { ref, defineEmits, onMounted } from 'vue';
 import dayjs from 'dayjs'
+import { ChatApi } from '@/webapi/index'
+import { message } from 'ant-design-vue';
+import { mergeCdn } from '@/utils/util.ts'
+import { throttle } from 'lodash-es'
 
 const searchBy = ref('');
-const activeTab = ref(0);
-const scrollID = ref('')
+const listType = ref(0);
+const selectChatId = ref('')
 
 const tabs = [
     { label: '全部', value: 0 },
@@ -57,107 +60,60 @@ const tabs = [
     { label: '拉黑', value: 2 },
 ];
 
-const chats = ref([
-    {
-        externalUser: {
-            nickName: 'Alice',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: true,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'Hey, how are you?'
-                }
-            }
-        },
-    },
-    {
-        externalUser: {
-            nickName: 'Bob',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: false,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'See you tomorrow!'
-                }
-            }
-        },
-    },
-    {
-        externalUser: {
-            nickName: 'Charlie',
-            avatar: 'https: //via.placeholder.com/40',
-            isOnline: false,
-        },
-        lastMessage: {
-            from: '',
-            fromType: '',
-            to: '',
-            toType: '',
-            content: {
-                type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-                text: {
-                    content: 'Blocked user.'
-                }
-            }
-        },
-    },
-    
-    // {
-    //     id: 3,
-    //     avatar: 'https://via.placeholder.com/40',
-    //     name: 'Charlie',
-    //     lastMessage: 'Blocked user.',
-    //     time: 'Yesterday',
-    //     isOnline: false,
-    //     status: 'blocked',
-    // },
-]);
-
-const filteredChats = computed(() => {
-    return chats.value
-});
+const chatsList = ref([]);
 
 const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
-    console.log('onChangeChat:',chat);
+    selectChatId.value = chat.user.uuid
     emits('on-change-chat',chat)
 }
 
-onChangeChat(chats.value[0])
-
 
 const onSearch = ()=>{
-
+  chatsList.value = []
+  getChatList('')
 }
 
-const getChatList = async ()=>{
+const onChangeTab = ()=>{
+  chatsList.value = []
+  getChatList('')
+}
+
+const handleScroll = throttle(()=>{
+  const idx = chatsList.value.length - 1
+  const scrollId = chatsList.value[idx].user.uuid
+  getChatList(scrollId)
+},500)
+
+const getChatList = async (scrollId)=>{
     const params = {
-        searchBy: searchBy.value,
-        listType: activeTab.value,
-        scrollID: scrollID.value
+      ScrollReques: {
+        asc: true,
+        pageSize: 20,
+        scrollID: {
+          description: scrollId
+        },
+        sorters: [
+          {
+            Asc: true,
+            Key: ""
+          }
+        ]
+      },
+      listType: listType.value,
+      searchBy: searchBy.value
     }
-    const api = ''
-    // TODO 发请求
-    const res = await baseService.post(api,params)
-        const {chats} = res
-        chats.value = res.chats || []
+    const res = await ChatApi.chatListPost(params)
+    if(res && res.code === 200){
+      const { chats=[] } = res.data
+      console.log('chats:',chats);
+      chatsList.value = [...chatsList.value, ...chats]
+    }else{
+      message.error(res.message || '请求失败，请联系管理员');
+    }
 }
 onMounted(()=>{
-    // getChatList()
+    getChatList('')
 })
 
 
@@ -177,6 +133,10 @@ onMounted(()=>{
 
     :deep(.ant-tabs-top >.ant-tabs-nav){
       margin: 0;
+    }
+
+    :deep(.ant-tabs-nav::before){
+      border-bottom: 0;
     }
   }
   
@@ -223,7 +183,6 @@ onMounted(()=>{
   .chat-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 10px;
   }
   
   .chat-item {
@@ -233,7 +192,25 @@ onMounted(()=>{
     padding: 6px 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
+    &:hover {
+      background-color: #e6f4ff;
+        // background-color: rgba(173, 216, 230, 0.5);
+    }
   }
+
+  .select-item{
+    position: relative;
+  }
+  .select-item::before{
+      position: absolute;
+      width: 4px;
+      height: 100%;
+      background-color: #1890ff;
+      // background: rgba(173, 216, 230, 0.5);
+      top: 0;
+      left: 0;
+      content: "";
+    }
   
   .chat-left {
     display: flex;
@@ -242,9 +219,15 @@ onMounted(()=>{
   }
   
   .avatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    border: 2px solid greenyellow;
+    margin-left: 8px;
+  }
+  .offline-avatar{
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
   }
   
   .chat-info {

@@ -10,7 +10,7 @@
       >
         <transition name="page-transition">
           <section>
-            <route-view />
+            <router-view />
           </section>
         </transition>
       </a-layout-content>

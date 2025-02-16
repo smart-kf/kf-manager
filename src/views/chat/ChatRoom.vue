@@ -1,35 +1,40 @@
 <template>
+  <div style="display: flex;flex: 1;">
     <div class="chatroom-contain">
       <!-- 消息来源 -->
-      <div class="info-container">
+      <div v-if="toUser?.user?.nickName" class="info-container">
         <!-- 第一行: 昵称和IP -->
         <div class="info-row">
-        <span class="nickname">{{ toUser.externalUser.nickName }}</span>
-        <span class="ip">{{ toUser.ip || '0.0.0.0' }}</span>
+        <span class="nickname">{{ toUser.user.nickName }}</span>
+        <span class="ip">{{ toUser?.user?.ip || '0.0.0.0' }}</span>
         </div>
         <!-- 第二行: 系统类型、系统版本、网络类型 -->
         <div class="info-row">
-        <span class="system-type">系统类型：{{ clientInfo.system }}</span>
-        <span class="system-version">系统版本：{{ clientInfo.system }}</span>
-        <span class="network-type">网络类型：{{ clientInfo.networkType }}</span>
+        <span class="system-type">系统类型：{{ toUser?.user?.device }}</span>
+        <span class="system-version">系统版本：{{ toUser?.user?.browser }}</span>
+        <span class="network-type">网络类型：{{ toUser?.user?.networkType }}</span>
         </div>
     </div>
 
       <!-- 消息展示区域 -->
-      <div class="message-display" ref="messageDisplay">
+      <div v-scroll-to-top="loadHistoryMsg" class="message-display" ref="messageDisplay">
         <div
           v-for="(message, index) in messages"
           :key="index"
-          :class="['message', message.isKf == '1' ? 'right' : '']"
+          :id="message.msgId"
+          :class="['message', message.isKf == 1 ? 'right' : '']"
         >
           <div class="avatar-and-name">
-            <span class="name">{{ message.isKf === '1' ? '' : message.guestName }}</span>
-            <img :src="message.guestAvatar" alt="Avatar" />
+            <span class="name">{{ message.isKf === 1 ? '' : message.guestName }}</span>
+            <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
           </div>
           <div class="message-content">
             <p v-if="message.msgType === 'text'">{{ message.content }}</p>
-            <video v-if="message.msgType === 'video'" :src="message.content" controls class="video-box"></video>
-            <img v-if="message.msgType === 'image'" :src="message.content"  class="image-box" />
+            <div v-if="message.msgType === 'video'" class="video-contain">
+              <video :src="message.content" class="video-box"></video>
+              <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)"/>
+            </div>
+            <a-image v-if="message.msgType === 'image'" :width="200" :src="message.content" class="image-box"/>
             <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
           </div>
         </div>
@@ -47,47 +52,70 @@
 
       
     </div>
+    <ChatUser v-if="toUser?.user?.nickName" :toUser="toUser"/>
+    <a-modal
+      title=""
+      v-model:visible="visible"
+      :footer="null"
+      :destroyOnClose="true"
+      :maskClosable="false"
+      :width="680"
+    >
+        <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
+        <video :src="videoUrl" width="640" height="360" autoplay controls>
+          <!-- 替换为你的视频文件地址 -->
+          <!-- <source >
+          你的浏览器不支持视频播放。 -->
+        </video>
+    </a-modal>
+  </div>
   </template>
   
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs } from 'vue';
+import { ref, onMounted, nextTick, defineProps, toRefs,watch } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
-import { FileImageOutlined, VideoCameraOutlined } from '@ant-design/icons-vue'
+import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+import { ChatApi } from '@/webapi/index'
+import { message, Spin } from 'ant-design-vue';
+import { throttle } from 'lodash-es'
+import { mergeCdn } from '@/utils/util.ts'
+import defaultUser from '@/assets/defaultUser.png'
+import ChatUser from './chatUser.vue'
+import { h } from 'vue';
 
 const props = defineProps({
   toUser:{
     type: Object,
     default: ()=>({
-      externalUser: {
-          nickName: '',
-          avatar: '',
-          isOnline: true,
-      },
-      lastMessage: {
-          from: '',
-          fromType: '',
-          to: '',
-          toType: '',
-          content: {
-              type: 0, //0:文本 1:语音 2:图片 3:视频 4:网址 5:其他文
-              text: {
-                  content: 'Hey, how are you?'
-              }
-          }
-      },
+      user:{},
+      lastChatAt: 0,
+      lastMessage: null
     })
   }
 })
 
-
 const { toUser } = toRefs(props)
 
-const clientInfo = ref({
-    system: 'Unknown',
-    networkType: 'Unknown'
+watch(()=>props.toUser,()=>{
+  if(toUser.value?.user?.uuid){
+    getChatMsg()
+    getChatUser(toUser.value.user.uuid)
+  }
+},{
+  deep: true,
+  immediate: true
 })
+
+const getChatUser = async (uuid)=>{
+  const params = {uuid}
+  const res = await ChatApi.chatUserGet(uuid)
+  console.log('res:',res);
+}
+
+const kfAvatar = defaultUser
+
 
 
 // ws实例
@@ -127,6 +155,7 @@ const newMessage = ref({
   guestName: '',
   guestAvatar: '',
   msgTime: '',
+  guestId: '58|0233a664e9cb4d6e87fbb4c58137cb08',
   kfId: '',
   content: '', //"内容：text=文本、image、video = 地址"
   isKf: 1
@@ -136,7 +165,13 @@ const newMessage = ref({
 const messageDisplay = ref(null);
   
 // 回车，发送消息
-const sendMessage = () => {
+const sendMessage = (event) => {
+  // 阻止默认的换行行为
+  event.preventDefault();
+  if(!toUser.value?.user?.uuid){
+    message.error('请选中聊天粉丝')
+    return
+  }
   const messageText = newMessage.value.content.trim();
   if (messageText) {
     newMessage.value.msgType = 'text'
@@ -169,10 +204,30 @@ const selectFile = (type) => {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = type === 'image' ? 'image/*' : 'video/*';
-  input.onchange = (event) => {
+  input.onchange = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      console.log('file:',file);
+      
         //TODO 上传至服务器，得到url后展示在消息框中
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileType', type);
+        
+        const res = await ChatApi.fileUpload(formData)
+        if(res && res.code===200 && res.data){
+          const {cdnHost,path} = res.data
+          const obj = {
+            msgType: type,
+            guestName: '',
+            guestAvatar: 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png',
+            content: `${cdnHost}${path}`,
+            msgTime: Date.now(),
+            isKf: 1
+          }
+          messages.value.push(JSON.parse(JSON.stringify(obj)));
+        }
+        
     //   const currentTime = new Date().toLocaleTimeString([], {
     //     hour: '2-digit',
     //     minute: '2-digit',
@@ -193,25 +248,63 @@ const selectFile = (type) => {
   };
   input.click();
 };
-      
-// 获取客户端信息
-const getClientInfo = ()=>{
-    // 获取系统信息
-    const userAgent = navigator.userAgent;
-    if (/Windows NT/i.test(userAgent)) clientInfo.value.system = "Windows";
-    else if (/Mac OS/i.test(userAgent)) clientInfo.value.system = "macOS";
-    else if (/Android/i.test(userAgent)) clientInfo.value.system = "Android";
-    else if (/iPhone|iPad|iPod/i.test(userAgent)) clientInfo.value.system = "iOS";
 
-    // 获取网络类型
-    const networkType = navigator.connection?.effectiveType || "Unknown";
-    clientInfo.value.networkType = networkType
+const getChatMsg = async(scrollId)=>{
+  const params = {
+    ScrollRequest: {
+      "asc": true,
+      "pageSize": 20,
+      "scrollID": {
+        description: scrollId
+      },
+      "sorters": [
+        {
+          "Asc": true,
+          "Key": "string"
+        }
+      ]
+    },
+    guestId: toUser.value.user.uuid
+  }
+  const res = await ChatApi.chatMsgPost(params)
+  console.log('res:',res);
+  if(res&&res.code === 200){
+    messages.value = [...res.data?.messages, ...messages.value]
+    const bottomItem = res.data.messages[res.data.messages.length-1]
+    setTimeout(() => {
+      const targetElement = document.getElementById(`${bottomItem.msgId}`);
+      if (targetElement) {
+        const offsetTop = targetElement.offsetTop;
+        const offsetHeight = targetElement.offsetHeight;
+        messageDisplay.value.scrollTop = offsetTop + offsetHeight;
+      }
+    }, 500);
+    
+  }else{
+    message.error(res.message || '请求失败，请联系管理员');
+  }
+  
+}
+
+const loadHistoryMsg = throttle(()=>{
+  const scrollId = messages.value[0].msgId
+  getChatMsg(scrollId)
+},500)
+
+const visible = ref(false)
+const videoUrl = ref('')
+const playVideo = (url)=>{
+  videoUrl.value = url
+  visible.value = true
 }
         
   
 // 自动滚动到最新消息
 onMounted(() => {
-  getClientInfo()
+
+  Spin.setDefaultIndicator({
+    indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
+  });
 
   nextTick(() => {
     messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
@@ -222,7 +315,7 @@ onMounted(() => {
 
   wsClient.onMessage(res=>{
     console.log('接收到啦：',res);
-    
+    messages.value.push(JSON.parse(JSON.stringify(res)));
   })
 
   // wsClient.onMessage((res)=>{
@@ -337,15 +430,29 @@ onMounted(() => {
     margin-bottom: 0;
   }
 
-  .video-box{
-    width: 200px;
-    height: 120px;
+  .video-contain{
+    position: relative;
+    .video-box{
+      width: 200px;
+      height: 120px;
+    }
+    .play-icon{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      color: #fff;
+      font-size: 36px;
+      background: #ccc;
+      border-radius: 50%;
+    }
   }
+  
 
   .image-box{
     width: 200px;
     height: 200px;
-    object-fit: contain;
+    object-fit: cover;
   }
 
 }
@@ -377,9 +484,10 @@ min-height: 200px;
 }
 
 .message-input .tools {
-display: flex;
-gap: 10px;
-margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .message-input .ant-input {
