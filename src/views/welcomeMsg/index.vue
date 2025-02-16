@@ -9,24 +9,24 @@
         </span>
       </div>
     </div>
-    <a-table bordered :data-source="state.dataSource" :columns="columns" size="middle">
+    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 'max-content' }" :pagination="false">
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
-          <template v-if="record.contentType === 'video'">
+          <template v-if="record.type === 'video'">
             <span>{{ record.content }}</span>
           </template>
-          <template v-else-if="record.contentType === 'image'">
+          <template v-else-if="record.type === 'image'">
             <a-image :width="100" :height="100" :src="record.content" :fallback="failImg" />
           </template>
           <template v-else>
             <span>{{ record.content }}</span>
           </template>
         </template>
-        <template v-if="column.dataIndex === 'sendSort'">
-          <a-input-number id="inputNumber" v-model:value="record.sendSort" :min="1" :max="9999" />
+        <template v-if="column.dataIndex === 'sort'">
+          <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="10" />
         </template>
-        <template v-if="column.dataIndex === 'status'">
-          <a-switch v-model:checked="record.status" />
+        <template v-if="column.dataIndex === 'enable'">
+          <a-switch v-model:checked="record.enable" @change="onChangeStatus(record)" />
         </template>
         <template v-if="column.dataIndex === 'operation'">
           <a-space>
@@ -38,25 +38,30 @@
         </template>
       </template>
     </a-table>
-    <MaterialDrawer v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData"></MaterialDrawer>
+    <MaterialDrawer v-model:model-value="state.showDia" :msgType="searchParams.msgType" :action-type="state.actionType" :edit-data="state.editData" @refesh="getTableList"></MaterialDrawer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref, onMounted, reactive } from 'vue'
-import { h } from 'vue'
 import { ReloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import MaterialDrawer from '@/components/MaterialDrawer/index.vue'
-import { message } from 'ant-design-vue'
-import logo from '@/assets/defaultUser.png'
 import failImg from '@/assets/failImg.png'
+import { message as Message } from 'ant-design-vue'
+import { MessageApi } from '@/webapi/index'
 
 const state = reactive({
   dataSource: [],
   editableData: {},
   editData: {},
   actionType: 'add',
-  showDia: false
+  showDia: false,
+  loading: false,
+  total: 0
+})
+
+const searchParams = reactive({
+  msgType: 'welcome_msg' //doc:"快捷回复=quick_reply, 欢迎语=welcome_msg, 智能回复
 })
 
 const columns = [
@@ -64,20 +69,22 @@ const columns = [
     title: '回复内容',
     key: 'content',
     align: 'center',
-    dataIndex: 'content'
+    ellipsis: true,
+    dataIndex: 'content',
+    width: 300
   },
   {
     title: '发送顺序(小到大)',
-    key: 'sendSort',
+    key: 'sort',
     align: 'center',
-    dataIndex: 'sendSort',
+    dataIndex: 'sort',
     width: 200
   },
   {
     title: '是否启用',
     align: 'center',
-    dataIndex: 'status',
-    key: 'status',
+    dataIndex: 'enable',
+    key: 'enable',
     width: 200
   },
   {
@@ -88,13 +95,31 @@ const columns = [
   }
 ]
 
+const onDelete = async (record) => {
+  let params = {
+    id: record.id
+  }
+  let { code, data = {}, message }: any = await MessageApi.delWelcome(params)
+  if (code === 200) {
+    Message.success('删除成功')
+    getTableList()
+  } else {
+    Message.error(message || '请求失败')
+  }
+}
+
 const onRefesh = () => {
-  console.log(222)
+  getTableList()
 }
 // 新增欢迎语
 const onAddMsg = () => {
-  state.actionType = 'add'
-  state.showDia = true
+  if (state.total >= 10) {
+    Message.info('最多设置10条欢迎语')
+    return
+  } else {
+    state.actionType = 'add'
+    state.showDia = true
+  }
 }
 const onEdit = (item) => {
   state.actionType = 'edit'
@@ -102,42 +127,39 @@ const onEdit = (item) => {
   state.showDia = true
 }
 
-const onDelete = (item) => {
-  state.dataSource = state.dataSource.filter((el) => el.id !== item.id)
+const onChangeStatus = async (record) => {
+  let params: any = {
+    ...record,
+    msgType: searchParams.msgType
+  }
+  let { code, message }: any = await MessageApi.updateWelcome(params)
+  if (code === 200) {
+    getTableList()
+    Message.success('更新成功！')
+  } else {
+    Message.error(message || '请求失败')
+  }
 }
 
-const initData = () => {
-  state.dataSource = [
-    {
-      id: 1,
-      content: '文本',
-      sendSort: 1,
-      contentType: 'text',
-      status: true,
-      updateTime: '2024-13-13 13:13:13'
-    },
-    {
-      id: 2,
-      content: logo,
-      sendSort: 2,
-      contentType: 'image',
-      status: true,
-      updateTime: '2024-13-13 13:13:13'
-    },
-    {
-      id: 3,
-      content: '视频',
-      sendSort: 3,
-      contentType: 'video',
-      status: false,
-      updateTime: '2024-13-13 13:13:13'
-    }
-  ]
-  console.log(state)
+const getTableList = async () => {
+  let params: any = {
+    ...searchParams
+  }
+  state.loading = true
+  let { code, data = {}, message }: any = await MessageApi.getWelcomeList(params)
+  state.loading = false
+  if (code === 200) {
+    state.dataSource = (data.list || []).map((el) => {
+      return el
+    })
+    state.total = data.total || 0
+  } else {
+    Message.error(message || '请求失败')
+  }
 }
 
 onMounted(() => {
-  initData()
+  getTableList()
 })
 </script>
 <style lang="less" scoped>
