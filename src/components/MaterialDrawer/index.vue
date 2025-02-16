@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model:open="openModal" :title="title" @ok="handleOk" :maskClosable="false" :centered="true" width="920px" :bodyStyle="{ minHeight: '300px' }">
+  <a-modal v-model:visible="openModal" :title="title" @ok="handleOk" :maskClosable="false" :centered="true" width="920px" :bodyStyle="{ minHeight: '300px' }">
     <a-tabs v-model:activeKey="state.activeKey" type="card">
       <a-tab-pane key="text" tab="文本回复"></a-tab-pane>
       <a-tab-pane key="image" tab="图片回复"></a-tab-pane>
