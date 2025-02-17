@@ -23,7 +23,12 @@
           </template>
         </template>
         <template v-if="column.dataIndex === 'sort'">
-          <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="10" />
+          <a-space>
+            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" />
+            <a-button size="small" @click="onChangeStatus(record)">
+              <template #icon><SaveTwoTone /></template>
+            </a-button>
+          </a-space>
         </template>
 
         <template v-if="column.dataIndex === 'enable'">
@@ -39,13 +44,23 @@
         </template>
       </template>
     </a-table>
+    <a-pagination
+      size="small"
+      v-model:current="searchParams.page"
+      :defaultPageSize="20"
+      :total="state.total"
+      @change="onPageChange"
+      show-size-changer
+      show-quick-jumper
+      :show-total="(total) => `共 ${total} 条`"
+    />
     <MaterialDrawer v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData" :msgType="searchParams.msgType" @refesh="getTableList"></MaterialDrawer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref, onMounted, reactive } from 'vue'
-import { ReloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { ReloadOutlined, EditOutlined, DeleteOutlined, SaveTwoTone } from '@ant-design/icons-vue'
 import MaterialDrawer from '@/components/MaterialDrawer/index.vue'
 import logo from '@/assets/defaultUser.png'
 import failImg from '@/assets/failImg.png'
@@ -63,17 +78,26 @@ const state = reactive({
 })
 
 const searchParams = reactive({
+  page: 1,
+  pageSize: 20,
   msgType: 'quick_reply' //doc:"快捷回复=quick_reply, 欢迎语=welcome_msg, 智能回复
 })
 
 const columns = [
   {
+    title: '标题',
+    key: 'title',
+    align: 'center',
+    dataIndex: 'title',
+    ellipsis: true,
+    width: 200
+  },
+  {
     title: '回复内容',
     key: 'content',
     align: 'center',
     ellipsis: true,
-    dataIndex: 'content',
-    width: 300
+    dataIndex: 'content'
   },
   {
     title: '发送顺序(小到大)',
@@ -87,7 +111,7 @@ const columns = [
     align: 'center',
     dataIndex: 'enable',
     key: 'enable',
-    width: 200
+    width: 150
   },
   {
     title: '操作',
@@ -115,18 +139,19 @@ const onRefesh = () => {
 }
 // 新增欢迎语
 const onAddMsg = () => {
-  if (state.total >= 10) {
-    Message.info('最多设置10条欢迎语')
-    return
-  } else {
-    state.actionType = 'add'
-    state.showDia = true
-  }
+  state.actionType = 'add'
+  state.showDia = true
 }
 const onEdit = (item) => {
   state.actionType = 'edit'
   state.editData = item
   state.showDia = true
+}
+
+const onPageChange = (page, pageSize) => {
+  searchParams.page = page
+  searchParams.pageSize = pageSize
+  getTableList()
 }
 
 const onChangeStatus = async (record) => {

@@ -80,7 +80,7 @@ export const storage = {
     window[options.storage].removeItem(storage.getKey(key))
   },
   clear: (): void => {
-    window[options.storage].storage.clear()
+    window[options.storage].clear()
   }
 }
 

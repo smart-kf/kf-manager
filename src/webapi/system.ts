@@ -10,6 +10,6 @@ export const saveSysConfig = (data: any) => {
 }
 
 // 操作日志
-export const getQrcodeSwitch = (data: any) => {
-  return baseService.post(`api/kf-be/sysLog`, data)
+export const getLogList = (data: any) => {
+  return baseService.get(`api/kf-be/log/list`, { params: data })
 }

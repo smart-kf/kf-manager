@@ -6,10 +6,16 @@
       <a-tab-pane key="video" tab="视频回复"></a-tab-pane>
     </a-tabs>
     <div v-show="state.activeKey === 'text'" class="tab-body">
-      <div class="title-body" v-if="props.isAi">
+      <div class="title-body" v-if="showTitle()">
         <div class="label">标题:</div>
         <div style="width: 100%">
-          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
+          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.title"> </a-input>
+        </div>
+      </div>
+      <div class="title-body" v-if="showKeywords()">
+        <div class="label">关键词:</div>
+        <div style="width: 100%">
+          <a-input type="text" placeholder="请输入关键词" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
         </div>
       </div>
       <!-- <span class="tip">温馨提示：下载链接需要添加http://或www,无需额外再设置超链接或添加代码！</span> -->
@@ -24,10 +30,16 @@
       </div>
     </div>
     <div v-show="state.activeKey === 'image'" class="tab-body">
-      <div class="title-body" v-if="props.isAi">
+      <div class="title-body" v-if="showTitle()">
         <div class="label">标题:</div>
         <div style="width: 100%">
-          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
+          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.title"> </a-input>
+        </div>
+      </div>
+      <div class="title-body" v-if="showKeywords()">
+        <div class="label">关键词:</div>
+        <div style="width: 100%">
+          <a-input type="text" placeholder="请输入关键词" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
         </div>
       </div>
       <div :class="props.isAi ? 'img-body  ai-upload' : 'img-body'">
@@ -55,10 +67,16 @@
       </div>
     </div>
     <div v-show="state.activeKey === 'video'" class="tab-body">
-      <div class="title-body" v-if="props.isAi">
+      <div class="title-body" v-if="showTitle()">
         <div class="label">标题:</div>
         <div style="width: 100%">
-          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
+          <a-input type="text" placeholder="请输入标题" allowClear :maxlength="150" show-count v-model:value="state.title"> </a-input>
+        </div>
+      </div>
+      <div class="title-body" v-if="showKeywords()">
+        <div class="label">关键词:</div>
+        <div style="width: 100%">
+          <a-input type="text" placeholder="请输入关键词" allowClear :maxlength="150" show-count v-model:value="state.keyword"> </a-input>
         </div>
       </div>
       <div :class="props.isAi ? 'img-body  ai-upload' : 'img-body'">
@@ -172,6 +190,7 @@ const state = reactive({
   activeKey: 'text',
   loading: false,
   formData: {},
+  title: '',
   keyword: '',
   fileList: [] as any,
   videoList: [] as any,
@@ -190,7 +209,7 @@ const state = reactive({
 
 // 重置数据
 const resetData = () => {
-  state.keyword = ''
+  state.title = ''
   state.content = ''
   state.activeKey = 'text'
   state.formData = {}
@@ -203,7 +222,7 @@ const resetData = () => {
 const initEditor = () => {
   resetData()
   if (props.actionType === 'edit') {
-    state.keyword = props.isAi ? props.editData.keyword : ''
+    state.title = props.isAi ? props.editData.title : ''
     state.activeKey = props.editData.contentType
     if (props.editData.type === 'text') {
       state.activeKey = 'text'
@@ -221,6 +240,13 @@ const initEditor = () => {
   }
 }
 
+const showTitle = () => {
+  return props.msgType === 'quick_reply' || props.msgType === 'smart_msg'
+}
+const showKeywords = () => {
+  return props.msgType === 'smart_msg'
+}
+
 // 初始化
 const handleCreated = (editor) => {
   editorRef.value = editor // 记录 editor 实例，重要！
@@ -234,8 +260,12 @@ const handleOk = async () => {
     enable: true,
     type: state.activeKey
   }
-  if (props.isAi && !state.keyword) {
+  if (showTitle() && !state.title) {
     Message.error('标题不能为空')
+    return
+  }
+  if (showKeywords() && !state.keyword) {
+    Message.error('关键词不能为空')
     return
   }
 
@@ -269,7 +299,10 @@ const handleOk = async () => {
     params.id = props.editData.id
     params.sort = props.editData.sort
   }
-  if (props.isAi) {
+  if (showTitle()) {
+    params.title = state.title
+  }
+  if (showKeywords()) {
     params.keyword = state.keyword
   }
   state.loading = true
