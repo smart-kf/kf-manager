@@ -13,3 +13,8 @@ export const updateWelcome = (data: any) => {
 export const delWelcome = (data: any) => {
   return baseService.post(`api/kf-be/welcome/del`, data)
 }
+
+// 欢迎语，智能欢迎语，快捷回复删除
+export const copyWelcome = (data: any) => {
+  return baseService.post(`api/kf-be/welcome/copy`, data)
+}
