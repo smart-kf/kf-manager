@@ -40,14 +40,14 @@
             </a-form-item>
           </a-form>
         </a-tab-pane>
-        <a-tab-pane key="other" tab="快捷入口">
+        <!-- <a-tab-pane key="other" tab="快捷入口">
           <div class="other-btn">
             <a-button>卡密状态查询</a-button>
           </div>
           <div class="other-btn">
             <a-button>用户IP查询</a-button>
           </div>
-        </a-tab-pane>
+        </a-tab-pane> -->
       </a-tabs>
     </div>
     <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
@@ -286,7 +286,7 @@ onMounted(() => {})
     .ant-tabs-tab {
       margin: 0;
       justify-content: center;
-      width: 33.33%;
+      width: 50%;
     }
   }
 }

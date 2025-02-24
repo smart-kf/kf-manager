@@ -84,7 +84,7 @@ const rules = {
 // 复制卡密
 const copyQrcode = () => {
   navigator.clipboard
-    .writeText(formData.idCard)
+    .writeText(formData.cardId)
     .then(function () {
       Message.success('已成功复制到剪切板!')
     })
