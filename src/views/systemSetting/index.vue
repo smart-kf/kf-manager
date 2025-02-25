@@ -102,6 +102,7 @@ const saveData = async () => {
   let { code, data, message }: any = await SystemApi.saveSysConfig(params)
   state.loading = false
   if (code === 200) {
+    sessionStorage.setItem('systemConfig',JSON.stringify(formData))
     Message.success('保存成功')
   } else {
     Message.error(message)
@@ -123,10 +124,7 @@ const getAavatarUrl = (url = '') => {
 }
 
 const initData = async () => {
-  state.loading = true
-  let { code, data, message }: any = await SystemApi.getSysConfig({})
-  state.loading = false
-  if (code === 200) {
+    const data = JSON.parse(sessionStorage.getItem('systemConfig'))
     formData.nickname = data.nickname || ''
     formData.DeviceFilter = data.DeviceFilter || false
     formData.appleFilter = data.appleFilter || false
@@ -139,9 +137,6 @@ const initData = async () => {
     formData.wechatFilter = data.wechatFilter || false
     formData.wsFilter = data.wsFilter || false
     console.log(formData)
-  } else {
-    Message.error(message)
-  }
 }
 
 onMounted(() => {

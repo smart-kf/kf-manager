@@ -156,6 +156,8 @@ import { UserApi } from '@/webapi/index'
 import type { Rule } from 'ant-design-vue/es/form'
 import ls from '@/utils/Storage'
 import { message as Message } from 'ant-design-vue'
+import { SystemApi } from '@/webapi/index'
+
 
 const router = useRouter()
 
@@ -202,6 +204,15 @@ const handleTabClick = (key: string) => {
 const showAgreement = () => {
   state.showAgreementDia = true
 }
+
+// 获取配置信息
+const getConfig = async()=>{
+  let { code, data, message }: any = await SystemApi.getSysConfig({})
+  if(code === 200){
+    sessionStorage.setItem('systemConfig',JSON.stringify(data))
+  }
+}
+
 const loginHandle = async () => {
   let params = {
     captchaCode: '',
@@ -216,6 +227,7 @@ const loginHandle = async () => {
     ls.set('token', data.token)
     ls.set('cdnDomain', data.cdnDomain)
     router.push({ path: '/' })
+    getConfig()
   } else {
     Message.error(message || '请求失败')
   }
