@@ -3,12 +3,16 @@
     <a-popover placement="rightTop">
       <template #content>
         <a-space direction="vertical">
-          <div><span>卡密到期时间：2025-12-12 23:23:23</span></div>
-          <a-button type="link" @click="showNotice">公告</a-button>
+          <div>
+            <span>昵称：{{ state.nickname }}</span>
+          </div>
+          <div>
+            <span>到期时间：{{ state.expireTime }}</span>
+          </div>
           <a-button type="link" @click="loginOut">退出登录</a-button>
         </a-space>
       </template>
-      <a-avatar :size="44" :src="userInfo.avatar"> </a-avatar>
+      <a-avatar :size="55" :src="state.avatarUrl"> </a-avatar>
     </a-popover>
     <div class="point"></div>
   </div>
@@ -22,10 +26,17 @@ import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import { message as Message } from 'ant-design-vue'
 import ls from '@/utils/Storage'
+import { onMounted, reactive } from 'vue'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const { userInfo }: any = useUserStore()
 
+const state = reactive({
+  nickname: '', // 昵称
+  avatarUrl: '', // 头像
+  expireTime: '' //到期时间
+})
 // 登出
 const loginOut = () => {
   Modal.confirm({
@@ -47,12 +58,29 @@ const doLoginOut = async () => {
     Message.error(message || '请求失败')
   }
 }
-const showNotice = () => {}
+
+const getAavatarUrl = (url = '') => {
+  return url ? ls.get('cdnDomain') + url : userInfo.avatar
+}
+
+onMounted(() => {
+  const data = JSON.parse(sessionStorage.getItem('systemConfig') || '{}')
+  if (Object.keys(data).length) {
+    state.avatarUrl = getAavatarUrl(data.avatarUrl)
+    state.nickname = data.nickname || ''
+  }
+  let expireTime = ls.get('expireTime')
+  if (expireTime) {
+    state.expireTime = dayjs(expireTime).format('YYYY-MM-DD HH:mm:ss')
+  } else {
+    state.expireTime = '-'
+  }
+})
 </script>
 <style lang="less">
 .user-wrapper {
   width: 100%;
-  height: 60px;
+  height: 80px;
   margin: auto;
   display: flex;
   align-items: center;
@@ -64,7 +92,7 @@ const showNotice = () => {}
 }
 
 .point {
-  height: 60px;
+  height: 80px;
   position: relative;
   display: inline-block; /* 或其他适合你的布局的display属性 */
 }
@@ -72,7 +100,7 @@ const showNotice = () => {}
 .point::after {
   content: '';
   position: absolute;
-  bottom: 7px;
+  bottom: 12px;
   right: -2px;
   width: 8px;
   height: 8px;

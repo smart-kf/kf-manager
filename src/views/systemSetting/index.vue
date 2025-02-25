@@ -102,7 +102,7 @@ const saveData = async () => {
   let { code, data, message }: any = await SystemApi.saveSysConfig(params)
   state.loading = false
   if (code === 200) {
-    sessionStorage.setItem('systemConfig',JSON.stringify(formData))
+    sessionStorage.setItem('systemConfig', JSON.stringify(formData))
     Message.success('保存成功')
   } else {
     Message.error(message)
@@ -123,24 +123,38 @@ const getAavatarUrl = (url = '') => {
   return url ? ls.get('cdnDomain') + url : userInfo.avatar
 }
 
-const initData = async () => {
-    const data = JSON.parse(sessionStorage.getItem('systemConfig'))
-    formData.nickname = data.nickname || ''
-    formData.DeviceFilter = data.DeviceFilter || false
-    formData.appleFilter = data.appleFilter || false
-    formData.avatarUrl = data.avatarUrl || ''
-    formData.cardId = data.cardId || ''
-    formData.iPProxyFilter = data.iPProxyFilter || false
-    formData.newMessageVoice = data.newMessageVoice || false
-    formData.notice = data.notice || ''
-    formData.simulatorFilter = data.simulatorFilter || false
-    formData.wechatFilter = data.wechatFilter || false
-    formData.wsFilter = data.wsFilter || false
-    console.log(formData)
+const setData = (data: any = {}) => {
+  formData.nickname = data.nickname || ''
+  formData.DeviceFilter = data.DeviceFilter || false
+  formData.appleFilter = data.appleFilter || false
+  formData.avatarUrl = data.avatarUrl || ''
+  formData.cardId = data.cardId || ''
+  formData.iPProxyFilter = data.iPProxyFilter || false
+  formData.newMessageVoice = data.newMessageVoice || false
+  formData.notice = data.notice || ''
+  formData.simulatorFilter = data.simulatorFilter || false
+  formData.wechatFilter = data.wechatFilter || false
+  formData.wsFilter = data.wsFilter || false
+}
+
+const getSysConfig = async () => {
+  state.loading = true
+  let { code, data, message }: any = await SystemApi.getSysConfig({})
+  state.loading = false
+  if (code === 200) {
+    setData(data)
+  } else {
+    Message.error(message)
+  }
 }
 
 onMounted(() => {
-  initData()
+  const data = JSON.parse(sessionStorage.getItem('systemConfig') || '{}')
+  if (Object.keys(data).length) {
+    setData(data)
+  } else {
+    getSysConfig()
+  }
 })
 </script>
 <style lang="less" scoped>

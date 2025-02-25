@@ -158,7 +158,6 @@ import ls from '@/utils/Storage'
 import { message as Message } from 'ant-design-vue'
 import { SystemApi } from '@/webapi/index'
 
-
 const router = useRouter()
 
 const state = reactive({
@@ -206,10 +205,10 @@ const showAgreement = () => {
 }
 
 // 获取配置信息
-const getConfig = async()=>{
+const getConfig = async () => {
   let { code, data, message }: any = await SystemApi.getSysConfig({})
-  if(code === 200){
-    sessionStorage.setItem('systemConfig',JSON.stringify(data))
+  if (code === 200) {
+    sessionStorage.setItem('systemConfig', JSON.stringify(data))
   }
 }
 
@@ -226,6 +225,8 @@ const loginHandle = async () => {
   if (code === 200) {
     ls.set('token', data.token)
     ls.set('cdnDomain', data.cdnDomain)
+    ls.set('expireTime', data.expireTime) // 卡到期时间
+    // ls.set('notice', data.notice) // 公告
     router.push({ path: '/' })
     getConfig()
   } else {
