@@ -321,7 +321,7 @@ const handleOk = async () => {
 const beforeImgUpload = (file) => {
   let isImg = state.imgAccept.indexOf(file.type) !== -1
   if (!isImg) {
-    Message.error(`只支持png/jpg格式`)
+    Message.error(`只支持png/jpg/jpeg格式`)
     return false
   }
   if (file.size > 1024 * 1024 * state.imgMaxSize) {

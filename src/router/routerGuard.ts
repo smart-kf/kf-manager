@@ -4,6 +4,8 @@ import { hasPermission } from './permission'
 import ls from '@/utils/Storage'
 import { setDocumentTitle } from '@/utils/domUtil'
 import type { Router } from 'vue-router'
+import { useUserStore } from '@/store/modules/index' // 确保导入你的 store
+import { SystemApi } from '@/webapi/index'
 import { notification } from 'ant-design-vue'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
@@ -12,7 +14,8 @@ const whiteList = ['login', 'register', 'registerResult'] // 不进行拦截的�
 const defaultRoutePath = '/qrCode'
 
 export const setupBeforeEach = (router: Router) => {
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
+    const userStore = useUserStore()
     NProgress.start() // 加载进度条
     setDocumentTitle(to) // 设置页面标题
     const token = ls.get('token')
@@ -22,7 +25,19 @@ export const setupBeforeEach = (router: Router) => {
         next()
         NProgress.done()
       } else {
-        next()
+        try {
+          // 如果有信息，卡密一定存在，头像和昵称可能没有
+          if (userStore.getUserInfo.cardId) {
+            next() // 继续路由跳转
+          } else {
+            let res = await SystemApi.getSysConfig({})
+            userStore.setUserInfo(res.data)
+            next() // 继续路由跳转
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error)
+          next({ path: '/user/login' })
+        }
       }
     } else {
       if (whiteList.includes(to.name as any)) {

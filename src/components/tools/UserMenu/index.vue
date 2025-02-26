@@ -4,15 +4,15 @@
       <template #content>
         <a-space direction="vertical">
           <div>
-            <span>昵称：{{ state.nickname }}</span>
+            <span>昵称：{{ userInfo.nickname }}</span>
           </div>
           <div>
-            <span>到期时间：{{ state.expireTime }}</span>
+            <span>到期时间：{{ state.cardExpire }}</span>
           </div>
           <a-button type="link" @click="loginOut">退出登录</a-button>
         </a-space>
       </template>
-      <a-avatar :size="55" :src="state.avatarUrl"> </a-avatar>
+      <a-avatar :size="55" :src="getAavatarUrl(userInfo.avatarUrl)"> </a-avatar>
     </a-popover>
     <div class="point"></div>
   </div>
@@ -26,16 +26,21 @@ import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import { message as Message } from 'ant-design-vue'
 import ls from '@/utils/Storage'
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, computed } from 'vue'
 import dayjs from 'dayjs'
+import defaultUser from '@/assets/defaultUser.png'
 
 const router = useRouter()
-const { userInfo }: any = useUserStore()
+const userStore = useUserStore()
+
+const userInfo = computed(() => {
+  return userStore.getUserInfo
+})
 
 const state = reactive({
   nickname: '', // 昵称
   avatarUrl: '', // 头像
-  expireTime: '' //到期时间
+  cardExpire: '' //到期时间
 })
 // 登出
 const loginOut = () => {
@@ -60,20 +65,15 @@ const doLoginOut = async () => {
 }
 
 const getAavatarUrl = (url = '') => {
-  return url ? ls.get('cdnDomain') + url : userInfo.avatar
+  return url ? ls.get('cdnDomain') + url : defaultUser
 }
 
 onMounted(() => {
-  const data = JSON.parse(sessionStorage.getItem('systemConfig') || '{}')
-  if (Object.keys(data).length) {
-    state.avatarUrl = getAavatarUrl(data.avatarUrl)
-    state.nickname = data.nickname || ''
-  }
-  let expireTime = ls.get('expireTime')
-  if (expireTime) {
-    state.expireTime = dayjs(expireTime).format('YYYY-MM-DD HH:mm:ss')
+  let cardExpire = ls.get('cardExpire')
+  if (cardExpire) {
+    state.cardExpire = dayjs(cardExpire).format('YYYY-MM-DD HH:mm:ss')
   } else {
-    state.expireTime = '-'
+    state.cardExpire = '-'
   }
 })
 </script>
