@@ -12,7 +12,8 @@
               <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
             </a-form-item>
             <a-form-item name="password">
-              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150"
+                v-model:value="formData.password" />
             </a-form-item>
             <a-form-item name="agree">
               <a-checkbox-group v-model:value="formData.agree">
@@ -20,7 +21,8 @@
               </a-checkbox-group>
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading" @click="loginSubmit('login')">登录</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading"
+                @click="loginSubmit('login')">登录</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -30,13 +32,16 @@
               <a-input type="text" placeholder="请输入原卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
             </a-form-item>
             <a-form-item name="newUserNum">
-              <a-input type="text" placeholder="请输入新卡卡密" allowClear :maxlength="150" v-model:value="formData.newUserNum" />
+              <a-input type="text" placeholder="请输入新卡卡密" allowClear :maxlength="150"
+                v-model:value="formData.newUserNum" />
             </a-form-item>
             <a-form-item name="password">
-              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150" v-model:value="formData.password" />
+              <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150"
+                v-model:value="formData.password" />
             </a-form-item>
             <a-form-item>
-              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading" @click="loginSubmit('renew')">续费</a-button>
+              <a-button type="primary" class="login-button" :loading="state.loading" :disabled="state.loading"
+                @click="loginSubmit('renew')">续费</a-button>
             </a-form-item>
           </a-form>
         </a-tab-pane>
@@ -217,6 +222,8 @@ const jumpPage = (data: any) => {
   ls.set('token', data.token)
   ls.set('cdnDomain', data.cdnDomain)
   ls.set('cardExpire', data.cardExpire) // 卡到期时间
+  ls.set('wsHost', data.wsHost) //  ws 域名
+  ls.set('wsFullHost', data.wsFullHost) // ws 路径
   router.push({ path: '/' })
 }
 
@@ -264,14 +271,16 @@ const loginSubmit = (type: string) => {
   }
 }
 
-onMounted(() => {})
+onMounted(() => { })
 </script>
 
 <style lang="less" scoped>
 @import '@/style/index.less';
+
 .main {
   position: relative;
 }
+
 .login-title {
   position: absolute;
   top: -40px;
@@ -280,11 +289,13 @@ onMounted(() => {})
   background-color: #fff;
   left: 50%;
   transform: translateX(-50%);
+
   img {
     width: 86px;
     height: 86px;
   }
 }
+
 .user-layout-login {
   background: #fff;
   border-radius: 16px;
@@ -302,9 +313,11 @@ onMounted(() => {})
     width: 100%;
   }
 }
+
 .login-tab {
   :deep(.ant-tabs-nav-list) {
     width: 100%;
+
     .ant-tabs-tab {
       margin: 0;
       justify-content: center;
@@ -312,19 +325,24 @@ onMounted(() => {})
     }
   }
 }
+
 .other-btn {
   padding-bottom: 12px;
+
   button {
     width: 100%;
   }
 }
+
 .agreement-content {
   height: 60vh;
   overflow-y: auto;
+
   p {
     margin: 0;
   }
 }
+
 .notice-body {
   height: 300px;
   overflow-y: auto;

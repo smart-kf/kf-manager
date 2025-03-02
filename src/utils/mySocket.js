@@ -1,25 +1,31 @@
 const token = "f64366a9-19dc-43fb-b1ed-c33bb11180b6"
 
 class WebSocketClient {
-    constructor() {
-      this.connect();
+    constructor(params) {
+      this.connect(params);
     }
   
     // 连接方法
-    connect() {
+    connect(params) {
         console.log('import.meta.env:',import.meta.env)
 
+
         this.messageHandlers = [];
-
-        const wsPath = import.meta.env.DEV ? 'ws://goim.smartkf.top:80/' : 'wss://goim.smartkf.top:443/'
-
-        this.socket = io(wsPath, {
-            host: "goim.smartkf.top", // 域名，部署到线上直接用当前域名，本地连接可以写死。
+        const wsPath = params.wsFullHost 
+        const wsOptions = {
+            host: params.wsHost, // 域名，部署到线上直接用当前域名，本地连接可以写死。
             secure: true, // 固定
             transports: ['websocket'], // 固定
-            query:  `platform=kf-backend&token=${token}`,
+            query:  `platform=kf-backend&token=${params.token}`,
             path: "/socket.io/", // 固定
-        });
+        };
+
+        console.log('wsOptions:',wsOptions);
+        console.log('params:',params);
+        console.log('wsPath:',wsPath);
+
+        // const wsPath = import.meta.env.DEV ? 'ws://goim.smartkf.top:80/' : 'wss://goim.smartkf.top:443/'
+        this.socket = io(wsPath,wsOptions);
         
         // 服务端确认收到消息
         this.socket.on("messageAck",(msg)=>{
