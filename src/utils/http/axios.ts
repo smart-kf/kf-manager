@@ -38,6 +38,16 @@ baseService.interceptors.request.use(
 baseService.interceptors.response.use(
   (res: AxiosResponse<any>) => {
     if (res.status === 200) {
+      const { code } = res.data
+      if (code === 200) {
+        return res.data
+      } else if (code === 401 || code === 403) {
+        ls.clear()
+        window.location.href = window.location.origin + '/#/user/login'
+      } else if (code === 406) {
+        ls.clear()
+        window.location.href = window.location.origin + '/#/user/login'
+      }
       return res.data
     }
     return res

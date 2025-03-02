@@ -38,9 +38,9 @@
           >
             <template #bodyCell="{ column, text, record }">
               <template v-if="column.dataIndex === 'status'">
-                <span v-if="record.status === 1" style="color: #7ec051">正常</span>
-                <span v-if="record.status === 2" style="color: #ff4d4f">微信封禁</span>
-                <span v-if="record.status === 3" style="color: #ff4d4f">系统封禁</span>
+                <a-tag v-if="record.status === 1" color="#87d068">正常</a-tag>
+                <a-tag v-if="record.status === 2" color="gray">失效</a-tag>
+                <a-tag v-if="record.status === 3" color="orange">暂停引新粉</a-tag>
               </template>
               <template v-if="column.dataIndex === 'operation'">
                 <a-space>
@@ -55,13 +55,17 @@
                     </a-button>
                   </a-tooltip>
                   <a-tooltip title="使码永久失效，无法引流">
-                    <a-button type="primary" size="small" @click="closeQrcode(record)">失效码</a-button>
+                    <a-button type="primary" size="small" @click="changeQrcode(record, 'close')">失效码</a-button>
                   </a-tooltip>
                   <a-tooltip title="生成新码，旧码可以继续使用">
-                    <a-button type="primary" size="small" @click="changeQrcode(record)">更换码</a-button>
+                    <a-button type="primary" size="small" @click="changeQrcode(record, 'change')">更换码</a-button>
                   </a-tooltip>
                   <a-tooltip title="老用户依然可以进入，但新用户不行">
-                    <a-button type="primary" size="small">暂停引新粉</a-button>
+                    <a-button v-if="record.status !== 3" type="primary" size="small" @click="changeQrcode(record, 'stop-new')">暂停引新粉</a-button>
+                  </a-tooltip>
+                  <a-button v-if="record.status === 3" type="primary" size="small" @click="changeQrcode(record, 'start-new')">开启引新粉</a-button>
+                  <a-tooltip title="所有老码都失效">
+                    <a-button type="primary" size="small" @click="changeQrcode(record, 'stop-all')">停用所有老码</a-button>
                   </a-tooltip>
                 </a-space>
               </template>
@@ -165,7 +169,7 @@ const getQrcodeList = async () => {
   state.tableLoading = false
   if (code === 200) {
     state.dataSource = data.domains || []
-    if (data.domains.length) {
+    if (state.dataSource.length) {
       let firstItem = data.domains[0]
       if (state.selectItem.id) {
         let item = data.domains.find((el) => el.id === state.selectItem.id)
@@ -183,11 +187,8 @@ const getQrcodeList = async () => {
   }
 }
 // 使码失效
-const offQrcode = async (reocrd: any) => {
+const offQrcode = async (params: any) => {
   state.loading = true
-  let params = {
-    id: reocrd.id
-  }
   let { code, data, message }: any = await QrcodeApi.getQrcodeOff(params)
   state.loading = false
   if (code === 200) {
@@ -214,28 +215,42 @@ const switchQrcode = async (reocrd: any) => {
   }
 }
 
-const closeQrcode = (reocrd) => {
+const changeQrcode = (reocrd, actionType = '') => {
+  let tip = ''
+  let params: any = {
+    id: reocrd.id
+  }
+  if (actionType === 'close') {
+    tip = '失效后无法引流，确定操作吗？'
+    params.status = 2
+  }
+  if (actionType === 'change') {
+    tip = '生成新码，旧码可以继续使用，但不会检测和通知，确定操作吗？'
+  }
+  if (actionType === 'stop-all') {
+    tip = '停用后，所有旧码均不能再使用，确定操作吗？'
+    params.disableOld = true
+  }
+  if (actionType === 'stop-new') {
+    tip = '暂停后，老用户依然可以进入，但新用户不行，确定操作吗？'
+    params.status = 3
+  }
+  if (actionType === 'start-new') {
+    params.status = 1
+    return offQrcode(params)
+  }
   Modal.confirm({
     title: '提示',
     icon: createVNode(ExclamationCircleOutlined),
-    content: '失效后无法引流，确定要失效吗？',
+    content: tip,
     okText: '确认',
     cancelText: '取消',
     onOk() {
-      offQrcode(reocrd)
-    },
-    onCancel() {}
-  })
-}
-const changeQrcode = (reocrd) => {
-  Modal.confirm({
-    title: '提示',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: '生成新码，旧码可以继续使用，但不会检测和通知，确定要更换吗？',
-    okText: '确认',
-    cancelText: '取消',
-    onOk() {
-      switchQrcode(reocrd)
+      if (actionType === 'change') {
+        switchQrcode(params)
+      } else {
+        offQrcode(params)
+      }
     },
     onCancel() {}
   })

@@ -81,9 +81,12 @@ import { ChatApi } from '@/webapi/index'
 import { message, Spin } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
 import { mergeCdn } from '@/utils/util.ts'
-import defaultUser from '@/assets/defaultUser.png'
 import ChatUser from './chatUser.vue'
 import { h } from 'vue';
+import ls from '@/utils/Storage'
+
+const systemConfig = JSON.parse(sessionStorage.getItem('systemConfig'))
+const kfAvatar = `${ls.get('cdnDomain')}${systemConfig.avatarUrl}`
 
 const props = defineProps({
   toUser:{
@@ -114,7 +117,6 @@ const getChatUser = async (uuid)=>{
   console.log('res:',res);
 }
 
-const kfAvatar = defaultUser
 
 
 

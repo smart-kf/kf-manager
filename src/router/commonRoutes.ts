@@ -52,6 +52,12 @@ export default [
         component: () => import('@/views/speech/index.vue')
       },
       {
+        path: '/systemLog',
+        name: 'systemLog',
+        meta: { title: '日志', icon: 'icon-rizhi', keepAlive: false },
+        component: () => import('@/views/systemLog/index.vue')
+      },
+      {
         path: '/systemSetting',
         name: 'systemSetting',
         meta: { title: '设置', icon: 'icon-shezhi', keepAlive: false },

@@ -9,26 +9,30 @@
         </span>
       </div>
     </div>
-    <a-table bordered :data-source="state.dataSource" :columns="columns" size="middle">
+    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 'max-content' }" :pagination="false">
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
-          <template v-if="record.contentType === 'video'">
+          <template v-if="record.type === 'video'">
             <span>{{ record.content }}</span>
           </template>
-          <template v-else-if="record.contentType === 'image'">
+          <template v-else-if="record.type === 'image'">
             <a-image :width="100" :height="100" :src="record.content" :fallback="failImg" />
           </template>
           <template v-else>
             <span>{{ record.content }}</span>
           </template>
         </template>
-        <template v-if="column.dataIndex === 'sendSort'">
-          <a-input-number id="inputNumber" v-model:value="record.sendSort" :min="1" :max="9999" />
+        <template v-if="column.dataIndex === 'sort'">
+          <a-space>
+            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" />
+            <a-button size="small" @click="onChangeStatus(record)">
+              <template #icon><SaveTwoTone /></template>
+            </a-button>
+          </a-space>
         </template>
-        <template v-if="column.dataIndex === 'status'">
-          <a-switch v-model:checked="record.status" />
+        <template v-if="column.dataIndex === 'enable'">
+          <a-switch v-model:checked="record.enable" @change="onChangeStatus(record)" />
         </template>
-
         <template v-if="column.dataIndex === 'operation'">
           <a-space>
             <span class="table-link-action" @click="onEdit(record)"> <EditOutlined />修改 </span>
@@ -40,25 +44,52 @@
         </template>
       </template>
     </a-table>
-    <MaterialDrawer v-model:model-value="state.showDia" :is-ai="true" :action-type="state.actionType" :edit-data="state.editData"></MaterialDrawer>
+    <a-pagination
+      size="small"
+      v-model:current="searchParams.page"
+      :defaultPageSize="20"
+      :total="state.total"
+      @change="onPageChange"
+      show-size-changer
+      show-quick-jumper
+      :show-total="(total) => `共 ${total} 条`"
+    />
+    <MaterialDrawer
+      v-model:model-value="state.showDia"
+      :is-ai="true"
+      :msgType="searchParams.msgType"
+      :action-type="state.actionType"
+      @refesh="getTableList"
+      :edit-data="state.editData"
+    ></MaterialDrawer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref, onMounted, reactive } from 'vue'
 import { h } from 'vue'
-import { ReloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { ReloadOutlined, EditOutlined, DeleteOutlined, SaveTwoTone } from '@ant-design/icons-vue'
 import MaterialDrawer from '@/components/MaterialDrawer/index.vue'
 import { message } from 'ant-design-vue'
 import logo from '@/assets/defaultUser.png'
 import failImg from '@/assets/failImg.png'
+import { message as Message } from 'ant-design-vue'
+import { MessageApi } from '@/webapi/index'
 
 const state = reactive({
   dataSource: [],
   editableData: {},
   editData: {},
   actionType: 'add',
-  showDia: false
+  showDia: false,
+  loading: false,
+  total: 0
+})
+
+const searchParams = reactive({
+  page: 1,
+  pageSize: 20,
+  msgType: 'smart_msg' //doc:"快捷回复=quick_reply, 欢迎语=welcome_msg, 智能回复
 })
 
 const columns = [
@@ -67,7 +98,16 @@ const columns = [
     key: 'title',
     align: 'center',
     dataIndex: 'title',
-    ellipsis: true
+    ellipsis: true,
+    width: 200
+  },
+  {
+    title: '关键词',
+    key: 'keyword',
+    align: 'center',
+    dataIndex: 'keyword',
+    ellipsis: true,
+    width: 200
   },
   {
     title: '回复内容',
@@ -78,17 +118,17 @@ const columns = [
   },
   {
     title: '显示顺序',
-    key: 'sendSort',
+    key: 'sort',
     align: 'center',
-    dataIndex: 'sendSort',
-    width: 120
+    dataIndex: 'sort',
+    width: 200
   },
   {
     title: '是否启用',
     align: 'center',
-    dataIndex: 'status',
-    key: 'status',
-    width: 120
+    dataIndex: 'enable',
+    key: 'enable',
+    width: 150
   },
   {
     title: '操作',
@@ -98,9 +138,6 @@ const columns = [
   }
 ]
 
-const onRefesh = () => {
-  console.log(222)
-}
 // 新增欢迎语
 const onAddMsg = () => {
   state.actionType = 'add'
@@ -112,43 +149,61 @@ const onEdit = (item) => {
   state.showDia = true
 }
 
-const onDelete = (item) => {
-  state.dataSource = state.dataSource.filter((el) => el.id !== item.id)
+const onDelete = async (record) => {
+  let params = {
+    id: record.id
+  }
+  let { code, data = {}, message }: any = await MessageApi.delWelcome(params)
+  if (code === 200) {
+    Message.success('删除成功')
+    getTableList()
+  } else {
+    Message.error(message || '请求失败')
+  }
+}
+const onPageChange = (page, pageSize) => {
+  searchParams.page = page
+  searchParams.pageSize = pageSize
+  getTableList()
 }
 
-const initData = () => {
-  state.dataSource = [
-    {
-      id: 1,
-      title: '文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本文本',
-      content: '文本',
-      sendSort: 1,
-      contentType: 'text',
-      status: true,
-      updateTime: '2024-13-13 13:13:13'
-    },
-    {
-      id: 2,
-      content: logo,
-      sendSort: 2,
-      contentType: 'image',
-      status: true,
-      updateTime: '2024-13-13 13:13:13'
-    },
-    {
-      id: 3,
-      content: '视频',
-      sendSort: 3,
-      contentType: 'video',
-      status: false,
-      updateTime: '2024-13-13 13:13:13'
-    }
-  ]
-  console.log(state)
+const onRefesh = () => {
+  getTableList()
+}
+
+const onChangeStatus = async (record) => {
+  let params: any = {
+    ...record,
+    msgType: searchParams.msgType
+  }
+  let { code, message }: any = await MessageApi.updateWelcome(params)
+  if (code === 200) {
+    getTableList()
+    Message.success('更新成功！')
+  } else {
+    Message.error(message || '请求失败')
+  }
+}
+
+const getTableList = async () => {
+  let params: any = {
+    ...searchParams
+  }
+  state.loading = true
+  let { code, data = {}, message }: any = await MessageApi.getWelcomeList(params)
+  state.loading = false
+  if (code === 200) {
+    state.dataSource = (data.list || []).map((el) => {
+      return el
+    })
+    state.total = data.total || 0
+  } else {
+    Message.error(message || '请求失败')
+  }
 }
 
 onMounted(() => {
-  initData()
+  getTableList()
 })
 </script>
 <style lang="less" scoped>

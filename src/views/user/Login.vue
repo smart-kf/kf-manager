@@ -40,17 +40,17 @@
             </a-form-item>
           </a-form>
         </a-tab-pane>
-        <a-tab-pane key="other" tab="快捷入口">
+        <!-- <a-tab-pane key="other" tab="快捷入口">
           <div class="other-btn">
             <a-button>卡密状态查询</a-button>
           </div>
           <div class="other-btn">
             <a-button>用户IP查询</a-button>
           </div>
-        </a-tab-pane>
+        </a-tab-pane> -->
       </a-tabs>
     </div>
-    <a-modal v-model:open="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
+    <a-modal v-model:visible="state.showAgreementDia" width="80vw" centered title="用户协议&隐私政策">
       <div class="agreement-content">
         <p>用户协议&amp;隐私政策</p>
         <p><br /></p>
@@ -138,12 +138,19 @@
         <p>如果您不是具备完全民事权利能力和完全民事行为能力的自然人，您将无权使用云客服服务。</p>
         <p>七、其他</p>
         <p>7．1 本协议的订立、执行和解释及争议的解决均应适用中华人民共和国法律。</p>
-        <p>7．2 如双方就本协议内容或其执行发生任何争议，双方应尽量友好协商解决；协商不成时，任何一方均可向重庆小白龙网络科技有限公司所在地的人民法院提起诉讼。</p>
-        <p>7．3 云客服未行使或执行本服务协议任何权利或规定，不构成对前述权利或权利之放弃。</p>
-        <p>7．4 如本协议中的任何条款无论因何种原因完全或部分无效或不具有执行力，本协议的其余条款仍应有效并且有约束力。</p>
+        <p>7．2 云客服未行使或执行本服务协议任何权利或规定，不构成对前述权利或权利之放弃。</p>
+        <p>7．3 如本协议中的任何条款无论因何种原因完全或部分无效或不具有执行力，本协议的其余条款仍应有效并且有约束力。</p>
       </div>
       <template #footer>
-        <a-button key="submit" type="primary" @click="state.showAgreementDia = false">知道了</a-button>
+        <a-button type="primary" @click="state.showAgreementDia = false">知道了</a-button>
+      </template>
+    </a-modal>
+    <a-modal v-model:visible="state.showNotice" title="系统公告" :width="750" :maskClosable="false" :closable="false">
+      <div class="notice-body">{{ state.notice }}</div>
+      <template #footer>
+        <div style="text-align: center">
+          <a-button type="primary" @click="jumpPage(state.loginData)">知道了</a-button>
+        </div>
       </template>
     </a-modal>
   </div>
@@ -161,7 +168,10 @@ const router = useRouter()
 
 const state = reactive({
   loading: false,
-  showAgreementDia: false
+  showAgreementDia: false,
+  showNotice: false,
+  notice: '',
+  loginData: {} as any
 })
 const loginFormRef: any = ref(null)
 const renewFormRef: any = ref(null)
@@ -202,6 +212,14 @@ const handleTabClick = (key: string) => {
 const showAgreement = () => {
   state.showAgreementDia = true
 }
+
+const jumpPage = (data: any) => {
+  ls.set('token', data.token)
+  ls.set('cdnDomain', data.cdnDomain)
+  ls.set('cardExpire', data.cardExpire) // 卡到期时间
+  router.push({ path: '/' })
+}
+
 const loginHandle = async () => {
   let params = {
     captchaCode: '',
@@ -213,9 +231,13 @@ const loginHandle = async () => {
   let { code, data, message }: any = await UserApi.userLogin(params)
   state.loading = false
   if (code === 200) {
-    ls.set('token', data.token)
-    ls.set('cdnDomain', data.cdnDomain)
-    router.push({ path: '/' })
+    state.loginData = data
+    if (data.notice) {
+      state.notice = data.notice
+      state.showNotice = true
+    } else {
+      jumpPage(data)
+    }
   } else {
     Message.error(message || '请求失败')
   }
@@ -286,7 +308,7 @@ onMounted(() => {})
     .ant-tabs-tab {
       margin: 0;
       justify-content: center;
-      width: 33.33%;
+      width: 50%;
     }
   }
 }
@@ -302,5 +324,9 @@ onMounted(() => {})
   p {
     margin: 0;
   }
+}
+.notice-body {
+  height: 300px;
+  overflow-y: auto;
 }
 </style>

@@ -6,8 +6,15 @@
                 <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
             </a-tabs>
             <div v-if="activeKey===0" v-for="item in labels" class="item">
-                <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
-                <span style="margin-left: 10px;">{{ toUser.user[item.key] }}</span>
+                <template v-if="!['blockAt','topAt'].includes(item.key)">
+                    <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
+                    <span style="margin-left: 10px;">{{ toUser.user[item.key] }}</span>
+                </template>
+                <template v-else>
+                    <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
+                    <span v-if="item.key==='blockAt'" @click="onClick(item.key)" class="clickable">{{ toUser.user.blockAt > 0 ? '取消拉黑' : '拉黑' }}</span>
+                    <span v-if="item.key==='topAt'"  @click="onClick(item.key)" class="clickable">{{ toUser.user.topAt > 0 ? '取消置顶' : '置顶' }}</span>
+                </template>
             </div>
             <div v-if="activeKey===1" class="item">
                 功能待上线，敬请期待！
@@ -17,6 +24,8 @@
 </template>
 <script setup>
 import { defineProps, toRefs, ref } from 'vue'
+import { ChatApi } from '@/webapi/index'
+
 const props = defineProps({
   toUser:{
     type: Object,
@@ -48,9 +57,27 @@ const labels = [
     {key:'browser',label: '系统版本'},
     {key:'networkType',label: '网络类型'},
     {key:'scanCount',label: '扫码次数'},
-    // {label: '聊天置顶'},
-    // {label: '用户拉黑'},
+    {key:'topAt',label: '聊天置顶'},
+    {key:'blockAt',label: '用户拉黑'},
 ]
+
+const onClick = async (key)=>{
+    const {uuid,blockAt,topAt} = toUser.value.user
+    const params = {uuid}
+    if (key === 'blockAt') {
+        blockAt > 0 ? params.block = 2 : params.block = 1
+        params.updateType = 'block'
+    }
+    if(key === 'topAt'){
+        topAt > 0 ? params.top = 2 : params.top = 1
+        params.updateType = 'top'
+    }
+    const res = await ChatApi.updateUser(params)
+    // TODO 拉黑后,修改list，移除当前粉丝item，反之，添加粉丝item到合适的时间去
+    // 
+    // TODO 置顶后，修改list，当前粉丝item移到最上面，反之，移到粉丝item到合适的时间去
+    console.log('adf:',res);
+}
 
 
 
@@ -78,7 +105,11 @@ const labels = [
         align-items: center;
         padding: 6px 10px;
         color: #888;
-        cursor: pointer;
+        .clickable{
+            margin-left: 10px;
+            cursor: pointer;
+            color: #599cf8;
+        }
     }
 }
 </style>
