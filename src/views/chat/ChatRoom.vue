@@ -319,6 +319,14 @@ onMounted(() => {
   wsClient.onMessage(res => {
     console.log('接收到啦：', res);
     messages.value.push(JSON.parse(JSON.stringify(res)));
+
+    // 发送已读消息. 
+    newMessage.value.msgType = 'read'
+    let gid = toUser.value?.user?.uuid
+    if (gid) {
+      newMessage.value.guestId = toUser.value?.user?.uuid
+      wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
+    }
   })
 
   // wsClient.onMessage((res)=>{
