@@ -45,11 +45,12 @@
         </div>
         <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false"
           @pressEnter="sendMessage" />
+        <a-button @click="sendMessage" type="primary" class="send-btn">发送</a-button>
       </div>
 
 
     </div>
-    <ChatUser v-if="toUser?.user?.nickName" :toUser="toUser" />
+    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" />
     <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
       :width="680">
       <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
@@ -487,6 +488,7 @@ onMounted(() => {
 
 /* 消息输入区域 */
 .message-input {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 10px;
@@ -510,12 +512,16 @@ onMounted(() => {
 }
 
 .message-input button {
-  padding: 10px;
   border: none;
-  background: transparent;
-  color: #fff;
   font-size: 1em;
   cursor: pointer;
+}
+
+.message-input .send-btn{
+  width: 80px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
 }
 
 .emoji-text {
