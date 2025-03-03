@@ -5,17 +5,35 @@
             <a-tabs v-model:activeKey="activeKey" style="width: 100%;">
                 <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
             </a-tabs>
-            <div v-if="activeKey===0" v-for="item in labels" class="item">
-                <template v-if="!['blockAt','topAt'].includes(item.key)">
-                    <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
-                    <span style="margin-left: 10px;">{{ toUser.user[item.key] }}</span>
-                </template>
-                <template v-else>
-                    <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
-                    <span v-if="item.key==='blockAt'" @click="onClick(item.key)" class="clickable">{{ toUser.user.blockAt > 0 ? '取消拉黑' : '拉黑' }}</span>
-                    <span v-if="item.key==='topAt'"  @click="onClick(item.key)" class="clickable">{{ toUser.user.topAt > 0 ? '取消置顶' : '置顶' }}</span>
-                </template>
+            <div v-if="activeKey===0" >
+                <div v-for="item in labels" class="item">
+                    <template v-if="!['blockAt','topAt'].includes(item.key)">
+                        <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
+                        <span style="margin-left: 10px;">{{ toUser.user[item.key] }}</span>
+                    </template>
+                    <template v-else>
+                        <span style="display:inline-block; width: 80px;">{{ item.label }}</span>
+                        <span v-if="item.key==='blockAt'" @click="onClick(item.key)" class="clickable">{{ toUser.user.blockAt > 0 ? '取消拉黑' : '拉黑' }}</span>
+                        <span v-if="item.key==='topAt'"  @click="onClick(item.key)" class="clickable">{{ toUser.user.topAt > 0 ? '取消置顶' : '置顶' }}</span>
+                    </template>
+                </div>
+                <!--  -->
+                <a-form :model="formState" class="edit-form">
+                        <a-form-item label="手机号" name="mobile">
+                            <a-input v-model:value="formState.mobile" />
+                        </a-form-item>
+                        <a-form-item label="昵称" name="remarkName">
+                            <a-input v-model:value="formState.remarkName" />
+                        </a-form-item>
+                        <a-form-item label="备注" name="comments">
+                            <a-input v-model:value="formState.comments" />
+                        </a-form-item>
+                        <a-form-item>
+                            <a-button @click="onUpdateUser" type="primary" html-type="submit" style="margin-left:80px">提交</a-button>
+                        </a-form-item>
+                    </a-form>
             </div>
+            <!-- TODO 快捷回复 -->
             <div v-if="activeKey===1" class="item">
                 功能待上线，敬请期待！
             </div>
@@ -25,6 +43,7 @@
 <script setup>
 import { defineProps, toRefs, ref } from 'vue'
 import { ChatApi } from '@/webapi/index'
+import { reactive } from 'vue';
 
 const props = defineProps({
   toUser:{
@@ -45,6 +64,12 @@ const tabs = [
     { label: '用户资料', value: 0 },
     { label: '快捷回复', value: 1 }
 ];
+
+const formState = reactive({
+    mobile: toUser.value.user.mobile,
+    remarkName: toUser.value.user.remarkName || toUser.value.user.nickName,
+    comments: toUser.value.user.comments
+})
 
 const activeKey = ref(0)
 
@@ -79,6 +104,15 @@ const onClick = async (key)=>{
     console.log('adf:',res);
 }
 
+const onUpdateUser = async()=>{
+    const {uuid} = toUser.value.user
+    const params = {
+        uuid,
+        updateType:'userinfo',
+        ...formState
+    }
+    const res = await ChatApi.updateUser(params)
+}
 
 
 
@@ -110,6 +144,13 @@ const onClick = async (key)=>{
             cursor: pointer;
             color: #599cf8;
         }
+    }
+}
+
+:deep(.edit-form){
+    margin-top: 10px;
+    .ant-form-item-label{
+        width: 80px;
     }
 }
 </style>

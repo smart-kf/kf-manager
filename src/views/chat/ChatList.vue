@@ -219,8 +219,8 @@ onMounted(()=>{
   }
   
   .avatar {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     border: 2px solid greenyellow;
     margin-left: 8px;
@@ -239,12 +239,14 @@ onMounted(()=>{
   .name {
     font-weight: bold;
     font-size: 1em;
+    height: 22px;
   }
   
   .last-message {
+    height: 20px;
     max-width: 150px;
     font-size: 0.9em;
-    color: #666;
+    color: #888;
     margin-bottom: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -255,12 +257,12 @@ onMounted(()=>{
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 5px;
   }
   
   .status {
     font-size: 0.9em;
     color: #888;
+    height: 22px;
   }
   
   .status.online {
@@ -270,6 +272,7 @@ onMounted(()=>{
   .time {
     font-size: 0.8em;
     color: #999;
+    height: 20px;
   }
   
   /* 响应式 */
