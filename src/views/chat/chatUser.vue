@@ -18,7 +18,7 @@
                     </template>
                 </div>
                 <!--  -->
-                <a-form :model="formState" class="edit-form">
+                <a-form :model="formState" :colon="false" class="edit-form">
                         <a-form-item label="手机号" name="mobile">
                             <a-input v-model:value="formState.mobile" />
                         </a-form-item>
@@ -151,6 +151,10 @@ const onUpdateUser = async()=>{
     margin-top: 10px;
     .ant-form-item-label{
         width: 80px;
+    }
+
+    .ant-form-item-label > label{
+        color: #888;
     }
 }
 </style>
