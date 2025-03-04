@@ -89,7 +89,10 @@ const handleNewMessage = ()=>{
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
   const fans = chatsList.value[idx]
   fans.lastMessage = msgType === 'text' ? content : msgType === 'video' ? '视频' : '图片'
-  fans.unreadMsgCnt++
+  // 当前选中的粉丝和接收消息的粉丝不是同一个时，未读数加1
+  if(selectChatId.value !== fans.user.uuid){
+    fans.unreadMsgCnt++
+  }
   fans.lastChatAt = Date.now()
   // 将其移至第一个
   chatsList.value.splice(idx, 1);

@@ -5,7 +5,7 @@
       <div v-if="toUser?.user?.nickName" class="info-container">
         <!-- 第一行: 昵称和IP -->
         <div class="info-row">
-          <span class="nickname">{{ toUser.user.nickName }}</span>
+          <span class="nickname">{{ toUser.user.remarkName || toUser.user.nickName }}</span>
           <span class="ip">{{ toUser?.user?.ip || '0.0.0.0' }}</span>
         </div>
         <!-- 第二行: 系统类型、系统版本、网络类型 -->
@@ -100,8 +100,10 @@ const allMsgLoaded = ref(false)
 
 watch(() => props.toUser, () => {
   if (toUser.value?.user?.uuid) {
-    getChatMsg()
-    getChatUser(toUser.value.user.uuid)
+    setTimeout(() => {
+      getChatMsg()
+      getChatUser(toUser.value.user.uuid)
+    }, 0);
   }
 }, {
   deep: true,
@@ -337,10 +339,10 @@ onMounted(() => {
       newMessage.value.msgType = 'read'
       newMessage.value.guestId = toUser.value?.user?.uuid
       wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
-    }else{
-      emit('newMessage',res)
     }
+    emit('newMessage',res)
   })
+
 
   // wsClient.onMessage((res)=>{
   //   console.log('wsClient.onMessage',res);

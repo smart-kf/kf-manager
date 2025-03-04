@@ -26,7 +26,7 @@
                             <a-input v-model:value="formState.remarkName" />
                         </a-form-item>
                         <a-form-item label="备注" name="comments">
-                            <a-input v-model:value="formState.comments" />
+                            <a-textarea v-model:value="formState.comments" :rows="3" :maxlength="200" show-count/>
                         </a-form-item>
                         <a-form-item>
                             <a-button @click="onUpdateUser" type="primary" html-type="submit" style="margin-left:80px">提交</a-button>

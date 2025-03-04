@@ -1,7 +1,7 @@
 <template>
     <div class="chat-container">
         <ChatList :newMessage="newMessage" @onChangeChat="onChangeChat"/>
-        <ChatRoom :toUser="toUser" @new-message="onNewMessage"/>
+        <ChatRoom :key="toUser?.user?.uuid" :toUser="toUser" @new-message="onNewMessage"/>
         <!-- <ChatUser :toUser="toUser"/> -->
     </div>
 </template>
@@ -18,7 +18,6 @@ const onChangeChat = (chat)=>{
     //TODO 聊天人？
     console.log('toUser:',chat);
     toUser.value = chat
-    
 }
 
 const onNewMessage = (message)=>{
