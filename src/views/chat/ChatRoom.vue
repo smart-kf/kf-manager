@@ -50,7 +50,7 @@
 
 
     </div>
-    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" />
+    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo"/>
     <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
       :width="680">
       <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs, watch } from 'vue';
+import { ref, onMounted, nextTick, defineProps, toRefs, watch, defineEmits } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
@@ -298,6 +298,12 @@ const playVideo = (url) => {
   visible.value = true
 }
 
+const emit = defineEmits(['newMessage','changeUserInfo'])
+
+const onChangeUserInfo = (updateInfo)=>{
+  emit('changeUserInfo',updateInfo)
+}
+
 
 // 自动滚动到最新消息
 onMounted(() => {
@@ -321,14 +327,18 @@ onMounted(() => {
 
   wsClient.onMessage(res => {
     console.log('接收到啦：', res);
-    messages.value.push(JSON.parse(JSON.stringify(res)));
 
-    // 发送已读消息. 
-    newMessage.value.msgType = 'read'
-    let gid = toUser.value?.user?.uuid
-    if (gid) {
+    // 是否是当前粉丝发的消息
+    const guestId = res.guestId
+    if(toUser.value?.user?.uuid === guestId){
+      // 将消息展示在聊天框中
+      messages.value.push(JSON.parse(JSON.stringify(res)));
+      // 发送已读消息
+      newMessage.value.msgType = 'read'
       newMessage.value.guestId = toUser.value?.user?.uuid
       wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
+    }else{
+      emit('newMessage',res)
     }
   })
 
