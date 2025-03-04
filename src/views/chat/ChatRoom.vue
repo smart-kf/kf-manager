@@ -95,6 +95,8 @@ const props = defineProps({
 })
 
 const { toUser } = toRefs(props)
+const scrollId = ref(0)
+const allMsgLoaded = ref(false)
 
 watch(() => props.toUser, () => {
   if (toUser.value?.user?.uuid) {
@@ -247,26 +249,27 @@ const selectFile = (type) => {
   input.click();
 };
 
-const getChatMsg = async (scrollId) => {
+const getChatMsg = async () => {
+  // 当加载了所有消息，不再发送请求，最老的消息都加载了就没得了. 
+  if(allMsgLoaded.value) {
+    return 
+  }
   const params = {
-    ScrollRequest: {
-      "asc": true,
-      "pageSize": 20,
-      "scrollID": {
-        description: scrollId
-      },
-      "sorters": [
-        {
-          "Asc": true,
-          "Key": "string"
-        }
-      ]
-    },
+    pageSize: 20,
+    lastMsgTime: scrollId.value,
     guestId: toUser.value.user.uuid
   }
   const res = await ChatApi.chatMsgPost(params)
   console.log('res:', res);
   if (res && res.code === 200) {
+    if(res.data && res.data.messages.length == 0) {
+      allMsgLoaded.value = true 
+    }
+    // page1: [m21 m22 m23 m24 ... m40]
+    // page2: [m1 m2 m3 ... m20]
+    if(res.data && res.data.messages.length >0 ) {
+      scrollId.value = res.data.messages[0].msgTime
+    }
     messages.value = [...res.data?.messages, ...messages.value]
     const bottomItem = res.data.messages[res.data.messages.length - 1]
     setTimeout(() => {
@@ -285,8 +288,7 @@ const getChatMsg = async (scrollId) => {
 }
 
 const loadHistoryMsg = throttle(() => {
-  const scrollId = messages.value[0].msgId
-  getChatMsg(scrollId)
+  getChatMsg()
 }, 500)
 
 const visible = ref(false)
