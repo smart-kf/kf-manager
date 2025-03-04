@@ -22,7 +22,7 @@
         <div 
           v-for="chat in chatsList" 
           :key="chat.user.uuid" 
-          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'']" @click="onChangeChat(chat)">
+          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',chat.user.topAt > 0 ? 'top-item' : '']" @click="onChangeChat(chat)">
           <div class="chat-left">
             <a-badge :count="chat.unreadMsgCnt">
               <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
@@ -94,9 +94,22 @@ const handleNewMessage = ()=>{
     fans.unreadMsgCnt++
   }
   fans.lastChatAt = Date.now()
-  // 将其移至第一个
+  // 将指定粉丝置顶
+  handleTop(guestId)
+}
+
+const handleTop = (guestId)=>{
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
+  const fans = chatsList.value[idx]
   chatsList.value.splice(idx, 1);
-  chatsList.value.unshift(fans);
+  // 原本置顶的粉丝排第一
+  if(fans.user.topAt > 0){
+    chatsList.value.unshift(fans);
+  }else{
+    // 非置顶的粉丝排非置顶范围内的第一
+    const index = chatsList.value.findIndex((item)=>item.user.topAt == 0)
+    chatsList.value.splice(index,0,fans)
+  }
 }
 
 const searchBy = ref('');
@@ -259,7 +272,11 @@ onMounted(()=>{
       top: 0;
       left: 0;
       content: "";
-    }
+  }
+
+  .top-item{
+    background-color: #ebebeb;
+  }
   
   .chat-left {
     display: flex;
