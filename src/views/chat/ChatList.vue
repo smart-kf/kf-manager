@@ -22,9 +22,11 @@
         <div 
           v-for="chat in chatsList" 
           :key="chat.user.uuid" 
-          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'']" @click="onChangeChat(chat)">
+          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',chat.user.topAt > 0 ? 'top-item' : '']" @click="onChangeChat(chat)">
           <div class="chat-left">
-            <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
+            <a-badge :count="chat.unreadMsgCnt">
+              <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
+            </a-badge>
             <div class="chat-info">
               <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
               <p class="last-message">{{ chat.lastMessage }}</p>
@@ -43,12 +45,72 @@
   </template>
   
 <script setup>
-import { ref, defineEmits, onMounted } from 'vue';
+import { ref, defineEmits, onMounted, watch, defineProps, toRefs } from 'vue';
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
 import { throttle } from 'lodash-es'
+
+
+const props = defineProps({
+  newMessage: {
+    type: Object,
+    default: () => ({
+      content: "",
+      event: "message",
+      guestAvatar: "", 
+      guestId: '',
+      guestName: '',
+      isKf: '',
+      kfId: '',
+      msgId: '',
+      msgType: 'text',
+      platform: 'kf'
+    })
+  }
+})
+
+const { newMessage } = toRefs(props)
+
+watch(() => props.newMessage, () => {
+  if (newMessage.value?.guestId) {
+    // 未读消息加1，展示最新消息，消息时间
+    // 置顶
+    handleNewMessage()
+  }
+}, {
+  deep: true,
+  immediate: true
+})
+
+const handleNewMessage = ()=>{
+  const {guestId,msgType,content} = newMessage.value
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
+  const fans = chatsList.value[idx]
+  fans.lastMessage = msgType === 'text' ? content : msgType === 'video' ? '视频' : '图片'
+  // 当前选中的粉丝和接收消息的粉丝不是同一个时，未读数加1
+  if(selectChatId.value !== fans.user.uuid){
+    fans.unreadMsgCnt++
+  }
+  fans.lastChatAt = Date.now()
+  // 将指定粉丝置顶
+  handleTop(guestId)
+}
+
+const handleTop = (guestId)=>{
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
+  const fans = chatsList.value[idx]
+  chatsList.value.splice(idx, 1);
+  // 原本置顶的粉丝排第一
+  if(fans.user.topAt > 0){
+    chatsList.value.unshift(fans);
+  }else{
+    // 非置顶的粉丝排非置顶范围内的第一
+    const index = chatsList.value.findIndex((item)=>item.user.topAt == 0)
+    chatsList.value.splice(index,0,fans)
+  }
+}
 
 const searchBy = ref('');
 const listType = ref(0);
@@ -189,7 +251,7 @@ onMounted(()=>{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px;
+    padding: 12px 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
     &:hover {
@@ -210,7 +272,11 @@ onMounted(()=>{
       top: 0;
       left: 0;
       content: "";
-    }
+  }
+
+  .top-item{
+    background-color: #ebebeb;
+  }
   
   .chat-left {
     display: flex;

@@ -1,7 +1,7 @@
 <template>
     <div class="chat-container">
-        <ChatList @onChangeChat="onChangeChat"/>
-        <ChatRoom :toUser="toUser"/>
+        <ChatList :newMessage="newMessage" @onChangeChat="onChangeChat"/>
+        <ChatRoom :key="toUser?.user?.uuid" :toUser="toUser" @new-message="onNewMessage"/>
         <!-- <ChatUser :toUser="toUser"/> -->
     </div>
 </template>
@@ -12,12 +12,16 @@ import ChatRoom from './ChatRoom.vue'
 
 
 const toUser = ref()
+const newMessage = ref()
 
 const onChangeChat = (chat)=>{
     //TODO 聊天人？
     console.log('toUser:',chat);
     toUser.value = chat
-    
+}
+
+const onNewMessage = (message)=>{
+    newMessage.value = message
 }
 </script>
 

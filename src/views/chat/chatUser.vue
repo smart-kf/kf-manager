@@ -26,7 +26,7 @@
                             <a-input v-model:value="formState.remarkName" />
                         </a-form-item>
                         <a-form-item label="备注" name="comments">
-                            <a-input v-model:value="formState.comments" />
+                            <a-textarea v-model:value="formState.comments" :rows="3" :maxlength="200" show-count/>
                         </a-form-item>
                         <a-form-item>
                             <a-button @click="onUpdateUser" type="primary" html-type="submit" style="margin-left:80px">提交</a-button>
@@ -41,9 +41,10 @@
     </div>
 </template>
 <script setup>
-import { defineProps, toRefs, ref } from 'vue'
+import { defineProps, toRefs, ref, watch, defineEmits } from 'vue'
 import { ChatApi } from '@/webapi/index'
 import { reactive } from 'vue';
+import { message } from 'ant-design-vue';
 
 const props = defineProps({
   toUser:{
@@ -56,8 +57,24 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['change'])
+
 
 const { toUser } = toRefs(props)
+
+watch(() => props.toUser,() => {
+    if(toUser.value?.user){
+        setTimeout(() => {
+            const {mobile,remarkName,nickName,comments} = toUser.value.user
+            formState.mobile = mobile
+            formState.remarkName = remarkName || nickName
+            formState.comments = comments
+        }, 0);
+    }
+},{
+    deep: true,
+    immediate: true
+})
 
 
 const tabs = [
@@ -66,9 +83,9 @@ const tabs = [
 ];
 
 const formState = reactive({
-    mobile: toUser.value.user.mobile,
-    remarkName: toUser.value.user.remarkName || toUser.value.user.nickName,
-    comments: toUser.value.user.comments
+    mobile: '',
+    remarkName: '',
+    comments: ''
 })
 
 const activeKey = ref(0)
@@ -101,7 +118,10 @@ const onClick = async (key)=>{
     // TODO 拉黑后,修改list，移除当前粉丝item，反之，添加粉丝item到合适的时间去
     // 
     // TODO 置顶后，修改list，当前粉丝item移到最上面，反之，移到粉丝item到合适的时间去
-    console.log('adf:',res);
+    if(res.code === 200){
+        message.success('操作成功')
+        emit('change',params)
+    }
 }
 
 const onUpdateUser = async()=>{
@@ -112,6 +132,10 @@ const onUpdateUser = async()=>{
         ...formState
     }
     const res = await ChatApi.updateUser(params)
+    if(res.code === 200){
+        message.success('修改成功')
+        emit('change',params)
+    }
 }
 
 
@@ -148,6 +172,7 @@ const onUpdateUser = async()=>{
 }
 
 :deep(.edit-form){
+    width: 95%;
     margin-top: 10px;
     .ant-form-item-label{
         width: 80px;
