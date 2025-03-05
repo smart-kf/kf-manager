@@ -67,10 +67,22 @@ const props = defineProps({
       msgType: 'text',
       platform: 'kf'
     })
+  },
+  updateInfo: {
+    type: Object,
+    default: ()=>({
+      uuid: '',
+      updateType: '',  //block\top\userinfo
+      block: '', // 1拉黑，2取消拉黑
+      top: '', //1置顶，2取消置顶
+      mobile: '',
+      remarkName: '',
+      comments: ''
+    })
   }
 })
 
-const { newMessage } = toRefs(props)
+const { newMessage, updateInfo } = toRefs(props)
 
 watch(() => props.newMessage, () => {
   if (newMessage.value?.guestId) {
@@ -93,11 +105,11 @@ const handleNewMessage = ()=>{
     fans.unreadMsgCnt++
   }
   fans.lastChatAt = Date.now()
-  // 将指定粉丝置顶
-  handleTop(guestId)
+  // 新消息需要向前排
+  handleMsgTop(guestId)
 }
 
-const handleTop = (guestId)=>{
+const handleMsgTop = (guestId)=>{
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
   const fans = chatsList.value[idx]
   chatsList.value.splice(idx, 1);
@@ -109,6 +121,66 @@ const handleTop = (guestId)=>{
     const index = chatsList.value.findIndex((item)=>item.user.topAt == 0)
     chatsList.value.splice(index,0,fans)
   }
+}
+
+
+watch(()=>updateInfo.value,()=>{
+  const {updateType} = updateInfo.value
+  switch (updateType) {
+    case 'block':
+      handleBlock()
+      break;
+    case 'top':
+      handleTop()
+      break;
+    case 'userinfo':
+      handleUpdate()
+      break;
+    default:
+      break;
+  }
+},{
+  deep: true,
+})
+
+const handleBlock = ()=>{
+  const {block,uuid} = updateInfo.value
+  if(block === 1){
+    // 拉黑
+    listType.value = 2
+    onChangeTab()
+    return
+  }
+  // 取消拉黑
+  if(listType.value !==2) return
+  // 从拉黑tab中移除
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid ===updateInfo.value.uuid)
+  chatsList.value.splice(idx,1)
+}
+
+const handleTop = ()=>{
+  if(listType.value !== 0)return
+  const {top,uuid} = updateInfo.value
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === uuid)
+  const fans = chatsList.value[idx]
+  chatsList.value.splice(idx,1)
+  if(top===1){
+    // 置顶
+    fans.user.topAt = 1
+    chatsList.value.unshift(fans);
+    return
+  }
+  // 取消置顶
+  fans.user.topAt = 0
+  const index = chatsList.value.findIndex((item)=>item.user.topAt == 0)
+  chatsList.value.splice(index,0,fans)
+}
+
+const handleUpdate = ()=>{
+  const {uuid,remarkName} = updateInfo.value
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === uuid)
+  const fans = chatsList.value[idx]
+  fans.user.remarkName = remarkName
 }
 
 const searchBy = ref('');
@@ -125,6 +197,9 @@ const chatsList = ref([]);
 
 const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
+    // 如果有未读，清零
+    if(chat.unreadMsgCnt > 0 )chat.unreadMsgCnt = 0
+    
     selectChatId.value = chat.user.uuid
     emits('on-change-chat',chat)
 }
