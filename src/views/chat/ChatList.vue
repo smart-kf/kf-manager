@@ -45,13 +45,12 @@
   </template>
   
 <script setup>
-import { ref, defineEmits, onMounted, watch, defineProps, toRefs } from 'vue';
+import { ref, defineEmits, onMounted, watch, defineProps, toRefs , defineExpose } from 'vue';
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
 import { throttle } from 'lodash-es'
-
 
 const props = defineProps({
   newMessage: {
@@ -174,10 +173,35 @@ const getChatList = async (scrollId)=>{
       message.error(res.message || '请求失败，请联系管理员');
     }
 }
+
+// 用户上线
+const onOnline = (e) => {
+  console.log('chatList ---> ',e)
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === e.guestId)
+  if(idx !== -1) {
+    chatsList.value[idx].user.isOnline = true
+    console.log(chatsList.value[idx].user.nickName,'在线')
+  }
+}
+
+
+const onOffline = (e) => {
+  console.log('chatList ---> ',e)
+  const idx = chatsList.value.findIndex((item)=>item.user.uuid === e.guestId)
+  if(idx !== -1) {
+    chatsList.value[idx].user.isOnline = true
+    console.log(chatsList.value[idx].user.nickName,'在线')
+  }
+}
+
+
+
 onMounted(()=>{
     getChatList('')
 })
 
+
+defineExpose({ onOnline, onOffline });
 
 </script>
   
@@ -262,15 +286,16 @@ onMounted(()=>{
 
   .select-item{
     position: relative;
+    background: #dedede;
   }
-  .select-item::before{
+  .select-item:after{
       position: absolute;
-      width: 4px;
+      width: 6px;
       height: 100%;
       background-color: #1890ff;
       // background: rgba(173, 216, 230, 0.5);
+      right:0 ;
       top: 0;
-      left: 0;
       content: "";
   }
 

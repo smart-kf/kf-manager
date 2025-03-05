@@ -2,7 +2,10 @@ const token = "f64366a9-19dc-43fb-b1ed-c33bb11180b6"
 
 class WebSocketClient {
     constructor(params) {
-      this.connect(params);
+        this.onlineHandlers = [];
+        this.offlineHandlers = [];
+        this.messageHandlers = [];
+        this.connect(params);
     }
   
     // 连接方法
@@ -39,6 +42,16 @@ class WebSocketClient {
             this.messageHandlers.forEach(handler => handler(data));
         })
 
+        this.socket.on('online', (msg) => {
+            console.log('online:',msg);
+            this.onlineHandlers.forEach(handler => handler(JSON.parse(msg)));
+        })
+
+        this.socket.on('offline', (msg) => {
+            console.log('online:',msg);
+            this.offlineHandlers.forEach(handler => handler(JSON.parse(msg)));
+        })
+
 
         // this.socket.on('test', function (msg) {
         //     console.log('test:',msg);
@@ -67,6 +80,14 @@ class WebSocketClient {
     // 接收消息
     onMessage(handler) {
         this.messageHandlers.push(handler);
+    }
+
+    onOnline(handler) {
+        this.onlineHandlers.push(handler)
+    }
+
+    onOffline(handler) {
+        this.onlineHandlers.push(handler)
     }
   }
 

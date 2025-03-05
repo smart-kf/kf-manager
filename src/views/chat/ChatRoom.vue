@@ -76,6 +76,7 @@ import { mergeCdn } from '@/utils/util.ts'
 import ChatUser from './chatUser.vue'
 import { h } from 'vue';
 import ls from '@/utils/Storage'
+import ChatList from './ChatList.vue';
 
 const systemConfig = JSON.parse(sessionStorage.getItem('systemConfig'))
 const kfAvatar = `${ls.get('cdnDomain')}${systemConfig.avatarUrl}`
@@ -275,6 +276,9 @@ const getChatMsg = async () => {
     messages.value = [...res.data?.messages, ...messages.value]
     const bottomItem = res.data.messages[res.data.messages.length - 1]
     setTimeout(() => {
+      if(!bottomItem) {
+        return
+      }
       const targetElement = document.getElementById(`${bottomItem.msgId}`);
       if (targetElement) {
         const offsetTop = targetElement.offsetTop;
@@ -341,6 +345,14 @@ onMounted(() => {
       wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
     }
     emit('newMessage',res)
+  })
+
+  wsClient.onOnline((res) => {
+    emit('msg:online',res)
+  })
+
+  wsClient.onOffline((res) => {
+    emit('msg:offline',res)
   })
 
 
@@ -450,7 +462,6 @@ onMounted(() => {
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-
   p {
     margin-bottom: 0;
   }
