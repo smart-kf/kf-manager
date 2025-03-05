@@ -1,7 +1,12 @@
 <template>
     <div class="chat-container">
-        <ChatList :newMessage="newMessage" @onChangeChat="onChangeChat"/>
-        <ChatRoom :key="toUser?.user?.uuid" :toUser="toUser" @new-message="onNewMessage"/>
+        <ChatList :newMessage="newMessage"
+            :updateInfo="updateInfo"
+            @onChangeChat="onChangeChat"/>
+        <ChatRoom :key="toUser?.user?.uuid" 
+            :toUser="toUser" 
+            @new-message="onNewMessage"
+            @changeUserInfo="onChangeUserInfo"/>
         <!-- <ChatUser :toUser="toUser"/> -->
     </div>
 </template>
@@ -13,15 +18,20 @@ import ChatRoom from './ChatRoom.vue'
 
 const toUser = ref()
 const newMessage = ref()
+const updateInfo = ref()
 
 const onChangeChat = (chat)=>{
-    //TODO 聊天人？
-    console.log('toUser:',chat);
     toUser.value = chat
 }
 
+// 收到新推送消息，修改list中的未读数，时间，聊天内容展示等
 const onNewMessage = (message)=>{
     newMessage.value = message
+}
+
+// 置顶，拉黑，修改粉丝信息等
+const onChangeUserInfo = (info)=>{
+    updateInfo.value = info
 }
 </script>
 

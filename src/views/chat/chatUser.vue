@@ -106,21 +106,33 @@ const labels = [
 const onClick = async (key)=>{
     const {uuid,blockAt,topAt} = toUser.value.user
     const params = {uuid}
+    let msg
     if (key === 'blockAt') {
-        blockAt > 0 ? params.block = 2 : params.block = 1
         params.updateType = 'block'
+        if(blockAt > 0){
+            params.block = 2
+            msg = '已取消拉黑'
+        }else{
+            params.block = 1
+            msg = '已拉黑'
+        }
     }
     if(key === 'topAt'){
-        topAt > 0 ? params.top = 2 : params.top = 1
         params.updateType = 'top'
+        if(topAt > 0){
+            params.top = 2
+            msg = '已取消置顶'
+        }else{
+            params.top = 1
+            msg = '已置顶'
+        }
     }
     const res = await ChatApi.updateUser(params)
     // TODO 拉黑后,修改list，移除当前粉丝item，反之，添加粉丝item到合适的时间去
-    // 
     // TODO 置顶后，修改list，当前粉丝item移到最上面，反之，移到粉丝item到合适的时间去
     if(res.code === 200){
-        message.success('操作成功')
-        emit('change',params)
+        message.success(msg)
+        emit('change',JSON.parse(JSON.stringify(params)))
     }
 }
 
