@@ -2,7 +2,7 @@
     <div class="chat-user">
         <div class="tabs">
             <!-- @change="onChangeTab" -->
-            <a-tabs v-model:activeKey="activeKey" style="width: 100%;">
+            <a-tabs v-model:activeKey="activeKey" style="width: 100%;" @change="onChangeTab">
                 <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
             </a-tabs>
             <div v-if="activeKey===0" >
@@ -35,14 +35,20 @@
             </div>
             <!-- TODO 快捷回复 -->
             <div v-if="activeKey===1" class="item">
-                功能待上线，敬请期待！
+                <ul>
+                    <li v-for="item in quickReplyList" :key="item.id">
+                        {{ item.title }}  <a-button @click="sendQuickReply(item)" 
+                        type="primary" html-type="submit" style="margin-left:80px">发送</a-button>
+
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </template>
 <script setup>
 import { defineProps, toRefs, ref, watch, defineEmits } from 'vue'
-import { ChatApi } from '@/webapi/index'
+import { ChatApi ,MessageApi } from '@/webapi/index'
 import { reactive } from 'vue';
 import { message } from 'ant-design-vue';
 
@@ -88,7 +94,11 @@ const formState = reactive({
     comments: ''
 })
 
+const quickReplyPage = ref(1)
+const quickReplyPageSize = ref(20)
 const activeKey = ref(0)
+const quickReplyList = ref([])
+const quickReplyFinish = ref(false)
 
 const labels = [
     {key:'ip',label: '注册IP',},
@@ -150,7 +160,38 @@ const onUpdateUser = async()=>{
     }
 }
 
+const onChangeTab = async (e) => {
+    if(e === 1){
+        if (quickReplyFinish.value) {
+            return ;
+        }
+        let msgList = await MessageApi.getWelcomeList({msgType: 'quick_reply', page: quickReplyPage.value, pageSize: quickReplyPageSize.value})
+        if(msgList.code === 200){
+            quickReplyList.value = msgList.data.list
+            quickReplyFinish.value = msgList.data.list.length < quickReplyPageSize.value
+        }
+    }
+}
 
+const sendQuickReply = async (e) => {
+
+    console.log(e.type);
+
+
+    let msg = {msgType: '', content: ''}
+    if(e.type === 'text') {
+        msg.content = e.content
+        msg.msgType = 'text'
+    } else if(e.type === 'image') {
+        msg.content = e.content
+        msg.msgType = 'image'
+    } else if(e.type === 'video') {
+        msg.content = e.content
+        msg.msgType = 'video'
+    } 
+    // 发送出去. 
+    emit('quick-reply',msg)
+}
 
 </script>
 <style lang="less" scoped>

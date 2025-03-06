@@ -5,6 +5,8 @@ import ls from '@/utils/Storage'
 import emitter from '@/utils/eventBus'
 const whiteApiList = []
 
+console.log('baseURL ---> ', baseURL)
+
 const ContentType = {
   json: 'application/json',
   formData: 'multipart/form-data'

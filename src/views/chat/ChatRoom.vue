@@ -50,7 +50,7 @@
 
 
     </div>
-    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo"/>
+    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo" @quick-reply="onQuickReply"/>
     <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
       :width="680">
       <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
@@ -167,7 +167,7 @@ const newMessage = ref({
 const messageDisplay = ref(null);
 
 // 回车，发送消息
-const sendMessage = (event) => {
+const sendMessage = (event, msgType, msgText ) => {
   // 阻止默认的换行行为
   event.preventDefault();
   if (!toUser.value?.user?.uuid) {
@@ -175,9 +175,9 @@ const sendMessage = (event) => {
     return
   }
   newMessage.value.guestId = toUser.value?.user?.uuid
-  const messageText = newMessage.value.content.trim();
+  const messageText = msgText ? msgText : newMessage.value.content.trim();
   if (messageText) {
-    newMessage.value.msgType = 'text'
+    newMessage.value.msgType = msgType ? msgType : 'text'
     newMessage.value.content = messageText
     newMessage.value.msgTime = Date.now()
     newMessage.value.guestAvatar = 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png'
@@ -307,7 +307,12 @@ const playVideo = (url) => {
 const emit = defineEmits(['newMessage','changeUserInfo'])
 
 const onChangeUserInfo = (updateInfo)=>{
+  alert(1)
   emit('changeUserInfo',updateInfo)
+}
+
+const onQuickReply = (msg) => {
+  sendMessage({preventDefault:()=>{}},msg.msgType,msg.content)
 }
 
 
@@ -347,13 +352,15 @@ onMounted(() => {
     emit('newMessage',res)
   })
 
-  wsClient.onOnline((res) => {
-    emit('msg:online',res)
-  })
 
   wsClient.onOffline((res) => {
     emit('msg:offline',res)
   })
+
+  wsClient.onOnline((res) => {
+    emit('msg:online',res)
+  })
+
 
 
   // wsClient.onMessage((res)=>{

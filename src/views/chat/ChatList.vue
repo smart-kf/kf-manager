@@ -51,6 +51,7 @@ import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
 import { throttle } from 'lodash-es'
+import { chatListPost } from '@/webapi/chat';
 
 const props = defineProps({
   newMessage: {
@@ -81,6 +82,9 @@ const props = defineProps({
     })
   }
 })
+
+const page = ref(1)
+const pageSize = ref(20)
 
 const { newMessage, updateInfo } = toRefs(props)
 
@@ -223,19 +227,8 @@ const handleScroll = throttle(()=>{
 
 const getChatList = async (scrollId)=>{
     const params = {
-      ScrollReques: {
-        asc: true,
-        pageSize: 20,
-        scrollID: {
-          description: scrollId
-        },
-        sorters: [
-          {
-            Asc: true,
-            Key: ""
-          }
-        ]
-      },
+      page: page.value,
+      pageSize: pageSize.value,
       listType: listType.value,
       searchBy: searchBy.value
     }
@@ -244,6 +237,9 @@ const getChatList = async (scrollId)=>{
       const { chats=[] } = res.data
       console.log('chats:',chats);
       chatsList.value = [...chatsList.value, ...chats]
+      if(chats.length === pageSize.value) {
+        page.value++
+      }
     }else{
       message.error(res.message || '请求失败，请联系管理员');
     }
@@ -251,7 +247,7 @@ const getChatList = async (scrollId)=>{
 
 // 用户上线
 const onOnline = (e) => {
-  console.log('chatList ---> ',e)
+  console.log('online 得到消息了 ---> ',e)
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === e.guestId)
   if(idx !== -1) {
     chatsList.value[idx].user.isOnline = true
@@ -261,11 +257,11 @@ const onOnline = (e) => {
 
 
 const onOffline = (e) => {
-  console.log('chatList ---> ',e)
+  console.log('offline 得到消息了 ---> ',e)
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === e.guestId)
   if(idx !== -1) {
-    chatsList.value[idx].user.isOnline = true
-    console.log(chatsList.value[idx].user.nickName,'在线')
+    chatsList.value[idx].user.isOnline = false
+    console.log(chatsList.value[idx].user.nickName,'离线')
   }
 }
 

@@ -115,6 +115,7 @@ import { IDomEditor } from '@wangeditor/editor'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
 import ls from '@/utils/Storage'
+import { baseURL } from '@/utils/util'
 
 const emits = defineEmits(['update:modelValue', 'refesh'])
 
@@ -194,9 +195,11 @@ const state = reactive({
   keyword: '',
   fileList: [] as any,
   videoList: [] as any,
-  action: window.location.origin + '/api/kf-be/upload',
+  action: baseURL + 'api/kf-be/upload',
   previewVideo: '',
+  videoRelPath: '',
   previewImage: '',
+  imageRelPath: '',
   headers: {
     Authorization: ls.get('token')
   },
@@ -207,6 +210,8 @@ const state = reactive({
   previewVisible: false // 图片预览弹窗
 })
 
+console.log(state.action)
+
 // 重置数据
 const resetData = () => {
   state.title = ''
@@ -216,7 +221,9 @@ const resetData = () => {
   state.fileList = []
   state.videoList = []
   state.previewVideo = ''
+  state.videoRelPath = ''
   state.previewImage = ''
+  state.imageRelPath = ''
 }
 // 数据回显
 const initEditor = () => {
@@ -283,7 +290,7 @@ const handleOk = async () => {
       Message.error('回复内容不能为空')
       return
     } else {
-      params.content = state.previewVideo
+      params.content = state.videoRelPath
     }
   }
   if (state.activeKey === 'image') {
@@ -291,7 +298,7 @@ const handleOk = async () => {
       Message.error('回复内容不能为空')
       return
     } else {
-      params.content = state.previewImage
+      params.content = state.imageRelPath
     }
   }
 
@@ -353,8 +360,10 @@ const handleChange = (info: any) => {
       let url = data.cdnHost + data.path
       if (state.activeKey === 'image') {
         state.previewImage = url
+        state.imageRelPath = data.path
       } else {
         state.previewVideo = url
+        state.videoRelPath = data.path
       }
     } else {
       state.previewImage = ''
