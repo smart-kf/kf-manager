@@ -191,6 +191,8 @@ const sendMessage = (event, msgType, msgText ) => {
     nextTick(() => {
       messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
     });
+  }else{
+    message.error('请勿发送空白消息')
   }
 };
 
@@ -304,7 +306,7 @@ const playVideo = (url) => {
   visible.value = true
 }
 
-const emit = defineEmits(['newMessage','changeUserInfo'])
+const emit = defineEmits(['newMessage','changeUserInfo','msg:online','msg:offline'])
 
 const onChangeUserInfo = (updateInfo)=>{
   alert(1)
@@ -471,6 +473,7 @@ onMounted(() => {
   flex-direction: column;
   p {
     margin-bottom: 0;
+    overflow-wrap: anywhere;
   }
 
   .video-contain {
