@@ -121,9 +121,11 @@ const onClick = async (key)=>{
         params.updateType = 'block'
         if(blockAt > 0){
             params.block = 2
+            toUser.value.user.blockAt = 0
             msg = '已取消拉黑'
         }else{
             params.block = 1
+            toUser.value.user.blockAt = Date.now() / 1000 ;
             msg = '已拉黑'
         }
     }
@@ -131,9 +133,11 @@ const onClick = async (key)=>{
         params.updateType = 'top'
         if(topAt > 0){
             params.top = 2
+            toUser.value.user.topAt = 0; 
             msg = '已取消置顶'
         }else{
             params.top = 1
+            toUser.value.user.topAt = Date.now() / 1000 ;
             msg = '已置顶'
         }
     }
@@ -156,6 +160,9 @@ const onUpdateUser = async()=>{
     const res = await ChatApi.updateUser(params)
     if(res.code === 200){
         message.success('修改成功')
+        toUser.value.user.remarkName = formState.remarkName
+        toUser.value.user.comments = formState.comments
+        toUser.value.user.mobile = formState.mobile
         emit('change',params)
     }
 }

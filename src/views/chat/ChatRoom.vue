@@ -314,7 +314,6 @@ const playVideo = (url) => {
 const emit = defineEmits(['newMessage','changeUserInfo','msg:online','msg:offline'])
 
 const onChangeUserInfo = (updateInfo)=>{
-  alert(1)
   emit('changeUserInfo',updateInfo)
 }
 

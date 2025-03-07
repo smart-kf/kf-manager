@@ -22,7 +22,7 @@
         <div 
           v-for="chat in chatsList" 
           :key="chat.user.uuid" 
-          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',chat.user.topAt > 0 ? 'top-item' : '']" @click="onChangeChat(chat)">
+          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',]" @click="onChangeChat(chat)">
           <div class="chat-left">
             <a-badge :count="chat.unreadMsgCnt">
               <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
@@ -34,9 +34,11 @@
           </div>
           <div class="chat-right">
             <span class="status" :class="{ online: chat.user.isOnline }">
+              {{ chat.user.topAt > 0 ? '[顶]' : '' }}
+              {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
               {{ chat.user.isOnline ? '在线' : '离线' }}
             </span>
-            <span class="time">{{ chat.lastChatAt ? dayjs(chat.lastChatAt).format('HH:mm') : '' }}</span>
+            <span class="time">{{ chat.user.lastChatAt ? dayjs(chat.user.lastChatAt*1000).fromNow() : '' }}</span>
           </div>
         </div>
       </div>
@@ -47,11 +49,16 @@
 <script setup>
 import { ref, defineEmits, onMounted, watch, defineProps, toRefs , defineExpose } from 'vue';
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime' 
+import 'dayjs/locale/zh-cn'
 import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
 import { throttle } from 'lodash-es'
 import { chatListPost } from '@/webapi/chat';
+
+dayjs.locale('zh-cn') // +
+dayjs.extend(relativeTime)
 
 const props = defineProps({
   newMessage: {
@@ -85,6 +92,8 @@ const props = defineProps({
 
 const page = ref(1)
 const pageSize = ref(20)
+const scrollDone = ref(false)
+const lastListType = ref(0)
 
 const { newMessage, updateInfo } = toRefs(props)
 
@@ -152,34 +161,43 @@ watch(()=>updateInfo.value,()=>{
 const handleBlock = ()=>{
   const {block,uuid} = updateInfo.value
   if(block === 1){
-    // 拉黑
-    listType.value = 2
-    onChangeTab()
+    resortChatList()
     return
   }
   // 取消拉黑
-  if(listType.value !==2) return
-  // 从拉黑tab中移除
-  const idx = chatsList.value.findIndex((item)=>item.user.uuid ===updateInfo.value.uuid)
-  chatsList.value.splice(idx,1)
+  resortChatList()
+}
+// 重新排列列表，按照 下面的顺序：
+// 1. 优先排列topAt
+// 2. 排列 blockAt
+// 3. 排列 lastChatAt 
+const resortChatList = () => {
+  chatsList.value = chatsList.value.slice().sort((a, b) => {
+    // 情况1：topAt 不为0，优先按 topAt 降序
+    if (a.user.topAt !== 0 || b.user.topAt !== 0) {
+      return b.user.topAt - a.user.topAt;
+    }
+
+    // 情况2：topAt 都为0，且 blockAt 为0，按 lastChatAt 降序
+    if (a.user.blockAt === 0 && b.user.blockAt === 0) {
+      return b.user.lastChatAt - a.user.lastChatAt;
+    }
+
+    // 情况3：topAt 都为0，且 blockAt 不为0，按 blockAt 降序
+    return a.user.blockAt -  b.user.blockAt ;
+  })
 }
 
 const handleTop = ()=>{
   if(listType.value !== 0)return
   const {top,uuid} = updateInfo.value
-  const idx = chatsList.value.findIndex((item)=>item.user.uuid === uuid)
-  const fans = chatsList.value[idx]
-  chatsList.value.splice(idx,1)
   if(top===1){
     // 置顶
-    fans.user.topAt = 1
-    chatsList.value.unshift(fans);
+    resortChatList()
     return
   }
   // 取消置顶
-  fans.user.topAt = 0
-  const index = chatsList.value.findIndex((item)=>item.user.topAt == 0)
-  chatsList.value.splice(index,0,fans)
+  resortChatList()
 }
 
 const handleUpdate = ()=>{
@@ -213,26 +231,29 @@ const onChangeChat = (chat)=>{
 
 const onSearch = ()=>{
   chatsList.value = []
-  getChatList('')
+  getChatList()
 }
 
 const onChangeTab = ()=>{
   chatsList.value = []
-  getChatList('')
+  getChatList()
 }
 
 const handleScroll = throttle(()=>{
   const idx = chatsList.value.length - 1
-  const scrollId = chatsList.value[idx].user.uuid
-  getChatList(scrollId)
+  getChatList()
 },500)
 
-const getChatList = async (scrollId)=>{
+const getChatList = async ()=>{
+    if(searchBy.value.trim() === '' && lastListType.value == listType.value && scrollDone.value){
+      return
+    }
+    lastListType.value = listType.value
     const params = {
       page: page.value,
       pageSize: pageSize.value,
       listType: listType.value,
-      searchBy: searchBy.value
+      searchBy: searchBy.value.trim()
     }
     const res = await ChatApi.chatListPost(params)
     if(res && res.code === 200){
@@ -241,6 +262,9 @@ const getChatList = async (scrollId)=>{
       chatsList.value = [...chatsList.value, ...chats]
       if(chats.length === pageSize.value) {
         page.value++
+        scrollDone.value = false;
+      } else {
+        scrollDone.value = true ;
       }
     }else{
       message.error(res.message || '请求失败，请联系管理员');
@@ -371,11 +395,6 @@ defineExpose({ onOnline, onOffline });
       top: 0;
       content: "";
   }
-
-  .top-item{
-    background-color: #ebebeb;
-  }
-  
   .chat-left {
     display: flex;
     align-items: center;
