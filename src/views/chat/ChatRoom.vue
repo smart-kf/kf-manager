@@ -50,16 +50,21 @@
 
 
     </div>
+
+    <!-- 当前用户信息 -->
     <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo" @quick-reply="onQuickReply"/>
+    
+    <!-- 视频播放弹窗 -->
     <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
       :width="680">
-      <!-- video 标签用于播放视频，设置 autoplay 属性自动播放，controls 显示播放控件 -->
       <video :src="videoUrl" width="640" height="360" autoplay controls>
-        <!-- 替换为你的视频文件地址 -->
-        <!-- <source >
-          你的浏览器不支持视频播放。 -->
       </video>
     </a-modal>
+
+    <!-- 新消息音频 -->
+    <audio id="audioPlayer" :src="msgVoice" controls style="display: none;"></audio>
+    <!-- 上线音频 -->
+    <!-- <audio id="audioPlayer" :src="msgVoice" controls style="display: none;"></audio> -->
   </div>
 </template>
 
@@ -76,10 +81,12 @@ import { mergeCdn } from '@/utils/util.ts'
 import ChatUser from './chatUser.vue'
 import { h } from 'vue';
 import ls from '@/utils/Storage'
-import ChatList from './ChatList.vue';
+import msgVoice from '@/assets/newmsg.mp3'
 
 const systemConfig = JSON.parse(sessionStorage.getItem('systemConfig'))
 const kfAvatar = `${ls.get('cdnDomain')}${systemConfig.avatarUrl}`
+const voiceFlag = systemConfig.newMessageVoice
+
 const wsHost = ls.get('wsHost')
 const wsFullHost = ls.get('wsFullHost')
 const token = ls.get('token')
@@ -315,9 +322,11 @@ const onQuickReply = (msg) => {
   sendMessage({preventDefault:()=>{}},msg.msgType,msg.content)
 }
 
-
+let audio
 // 自动滚动到最新消息
 onMounted(() => {
+
+  audio = document.getElementById('audioPlayer')
 
   Spin.setDefaultIndicator({
     indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
@@ -338,6 +347,9 @@ onMounted(() => {
 
   wsClient.onMessage(res => {
     console.log('接收到啦：', res);
+    if(voiceFlag){
+      audio.play()
+    }
 
     // 是否是当前粉丝发的消息
     const guestId = res.guestId
