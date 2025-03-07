@@ -174,8 +174,8 @@ const onChangeTab = async (e) => {
         }
         let msgList = await MessageApi.getWelcomeList({msgType: 'quick_reply', page: quickReplyPage.value, pageSize: quickReplyPageSize.value})
         if(msgList.code === 200){
-            quickReplyList.value = msgList.data.list
-            quickReplyFinish.value = msgList.data.list.length < quickReplyPageSize.value
+            quickReplyList.value = msgList.data.list || []
+            quickReplyFinish.value = quickReplyList.value.length < quickReplyPageSize.value
         }
     }
 }

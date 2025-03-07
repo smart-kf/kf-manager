@@ -195,6 +195,11 @@ const sendMessage = (event, msgType, msgText ) => {
     emit('newMessage',JSON.parse(JSON.stringify(newMessage.value)))
     // 清空聊天
     newMessage.value.content = '';
+
+    // 滚动到底部
+    nextTick(() => {
+      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+    });
   }else{
     message.error('请勿发送空白消息')
   }
@@ -329,10 +334,6 @@ onMounted(() => {
 
   Spin.setDefaultIndicator({
     indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
-  });
-
-  nextTick(() => {
-    messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
   });
 
   let params = {
