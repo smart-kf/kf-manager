@@ -184,13 +184,10 @@ const sendMessage = (event, msgType, msgText ) => {
     messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
     // 发送给服务器
     wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
+    // 同步list中消息内容及时间
+    emit('newMessage',JSON.parse(JSON.stringify(newMessage.value)))
     // 清空聊天
     newMessage.value.content = '';
-
-    // 滚动到底部
-    nextTick(() => {
-      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-    });
   }else{
     message.error('请勿发送空白消息')
   }
@@ -254,11 +251,16 @@ const selectFile = (type) => {
   input.click();
 };
 
+// 上一次请求的内容高度
+let preScrollHeight = 0
+let preScrollTop = 0
 const getChatMsg = async () => {
   // 当加载了所有消息，不再发送请求，最老的消息都加载了就没得了. 
   if(allMsgLoaded.value) {
     return 
   }
+  preScrollHeight = messageDisplay.value.scrollHeight
+  preScrollTop = messageDisplay.value.scrollTop
   const params = {
     pageSize: 20,
     lastMsgTime: scrollId.value,
@@ -276,18 +278,14 @@ const getChatMsg = async () => {
       scrollId.value = res.data.messages[0].msgTime
     }
     messages.value = [...res.data?.messages, ...messages.value]
-    const bottomItem = res.data.messages[res.data.messages.length - 1]
-    setTimeout(() => {
-      if(!bottomItem) {
-        return
+    
+    nextTick(()=>{
+      if(preScrollHeight===0){
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight - messageDisplay.value.clientHeight
+      }else{
+        messageDisplay.value.scrollTop = (messageDisplay.value.scrollHeight-preScrollHeight)+preScrollTop
       }
-      const targetElement = document.getElementById(`${bottomItem.msgId}`);
-      if (targetElement) {
-        const offsetTop = targetElement.offsetTop;
-        const offsetHeight = targetElement.offsetHeight;
-        messageDisplay.value.scrollTop = offsetTop + offsetHeight;
-      }
-    }, 500);
+    })
 
   } else {
     message.error(res.message || '请求失败，请联系管理员');

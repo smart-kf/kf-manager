@@ -102,15 +102,17 @@ watch(() => props.newMessage, () => {
 const handleNewMessage = ()=>{
   const {guestId,msgType,content} = newMessage.value
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
-  const fans = chatsList.value[idx]
-  fans.lastMessage = msgType === 'text' ? content : msgType === 'video' ? '视频' : '图片'
-  // 当前选中的粉丝和接收消息的粉丝不是同一个时，未读数加1
-  if(selectChatId.value !== fans.user.uuid){
-    fans.unreadMsgCnt++
+  if(idx>-1){
+    const fans = chatsList.value[idx]
+    fans.lastMessage = msgType === 'text' ? content : msgType === 'video' ? '视频' : '图片'
+    // 当前选中的粉丝和接收消息的粉丝不是同一个时，未读数加1
+    if(selectChatId.value !== fans.user.uuid){
+      fans.unreadMsgCnt++
+    }
+    fans.lastChatAt = Date.now()
+    // 新消息需要向前排
+    handleMsgTop(guestId)
   }
-  fans.lastChatAt = Date.now()
-  // 新消息需要向前排
-  handleMsgTop(guestId)
 }
 
 const handleMsgTop = (guestId)=>{
@@ -357,7 +359,7 @@ defineExpose({ onOnline, onOffline });
 
   .select-item{
     position: relative;
-    background: #dedede;
+    // background: #dedede;
   }
   .select-item:after{
       position: absolute;
