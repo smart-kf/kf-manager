@@ -34,14 +34,28 @@
                     </a-form>
             </div>
             <!-- TODO 快捷回复 -->
-            <div v-if="activeKey===1" class="item">
-                <ul>
+            <div v-if="activeKey===1">
+                <div class="quick-reply-items">
+                    <div v-for="item in quickReplyList" :key="item.id" class="quick-reply-item">
+                        <div class="item-content">
+                            <h3>{{ item.title }}</h3>
+                            <div v-if="item.type === 'text'" class="content">{{ item.content }}</div>
+                            <img v-else-if="item.type === 'image'" :src="ls.get('cdnDomain') + item.content" alt="快捷回复图片" />
+                            <video v-else-if="item.type === 'video'" controls>
+                                <source :src="ls.get('cdnDomain') + item.content" type="video/mp4" />
+                            </video>
+                        </div>
+                        <send-outlined @click="sendQuickReply(item)" :rotate="-45" :style="{fontSize: '20px',color: '#599cf8'}"/>
+                        <!-- <a-button type="primary" @click="sendQuickReply(item)">发送</a-button> -->
+                    </div>
+                </div>
+                <!-- <ul>
                     <li v-for="item in quickReplyList" :key="item.id">
                         {{ item.title }}  <a-button @click="sendQuickReply(item)" 
                         type="primary" html-type="submit" style="margin-left:80px">发送</a-button>
 
                     </li>
-                </ul>
+                </ul> -->
             </div>
         </div>
     </div>
@@ -51,6 +65,9 @@ import { defineProps, toRefs, ref, watch, defineEmits } from 'vue'
 import { ChatApi ,MessageApi } from '@/webapi/index'
 import { reactive } from 'vue';
 import { message } from 'ant-design-vue';
+import ls from '@/utils/Storage'
+import { SendOutlined } from '@ant-design/icons-vue'
+
 
 const props = defineProps({
   toUser:{
@@ -63,7 +80,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['change'])
+const emit = defineEmits(['change','quick-reply'])
 
 
 const { toUser } = toRefs(props)
@@ -182,7 +199,7 @@ const onChangeTab = async (e) => {
 
 const sendQuickReply = async (e) => {
 
-    console.log(e.type);
+    console.log('sendQuickReply:',e);
 
 
     let msg = {msgType: '', content: ''}
@@ -190,13 +207,15 @@ const sendQuickReply = async (e) => {
         msg.content = e.content
         msg.msgType = 'text'
     } else if(e.type === 'image') {
-        msg.content = e.content
+        msg.content = `${ls.get('cdnDomain')}${e.content}`
         msg.msgType = 'image'
     } else if(e.type === 'video') {
-        msg.content = e.content
+        msg.content = `${ls.get('cdnDomain')}${e.content}`
         msg.msgType = 'video'
     } 
     // 发送出去. 
+    console.log('msg:',msg);
+    
     emit('quick-reply',msg)
 }
 
@@ -240,6 +259,44 @@ const sendQuickReply = async (e) => {
 
     .ant-form-item-label > label{
         color: #888;
+    }
+}
+
+.quick-reply-items {
+    height: calc(100vh - 53px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding: 10px;
+
+    .quick-reply-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      padding: 16px;
+
+      .item-content {
+        h3 {
+          margin-bottom: 8px;
+        }
+
+        .content{
+            max-width: 150px;
+        }
+
+        img {
+          max-width: 150px;
+          max-height: 200px;
+        }
+
+        video {
+          max-width: 150px;
+          max-height: 200px;
+        }
+      }
     }
 }
 </style>

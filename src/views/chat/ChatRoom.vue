@@ -490,7 +490,7 @@ onMounted(() => {
     position: relative;
 
     .video-box {
-      width: 200px;
+      // width: 200px;
       height: 120px;
     }
 
