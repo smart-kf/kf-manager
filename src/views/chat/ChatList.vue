@@ -1,48 +1,59 @@
 <template>
     <div class="chat-list-container">
       <!-- 搜索框 -->
-      <div class="search-box">
+      <div class="search-box flex">
         <a-input-search
             v-model:value="searchBy"
             placeholder="搜索编号或备注"
             enter-button
             @search="onSearch"
         />
+        <a-button type="primary" @click="batchSend">{{ batchSendMod ? '取消': '群发' }}</a-button>
       </div>
   
       <!-- Tab 切换 -->
-      <div class="tabs">
+      
+      <div class="tabs" style="margin:auto;width: 100%;">
         <a-tabs v-model:activeKey="listType" @change="onChangeTab" style="width: 100%;">
-            <a-tab-pane v-for="tab in tabs" :key="tab.value"  :tab="tab.label"></a-tab-pane>
+            <a-tab-pane v-for="tab in tabs" :key="tab.value">
+              <template #tab>
+                <span>
+                  <!-- <a-checkbox value="1" @change="selectAll" name="guestIds" v-show="batchSendMod" ></a-checkbox> -->
+                  {{ tab.label }} <a-badge v-if="showUnReadDot && tab.value === 0" dot></a-badge>
+                </span>
+              </template>
+            </a-tab-pane>
         </a-tabs>
       </div>
 
       <!-- 聊天列表 -->
       <div v-scroll="handleScroll" class="chat-list">
-        <div 
-          v-for="chat in chatsList" 
-          :key="chat.user.uuid" 
-          :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',]" @click="onChangeChat(chat)">
-          <div class="chat-left">
-            <a-badge :count="chat.unreadMsgCnt">
-              <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
-            </a-badge>
-            <div class="chat-info">
-              <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
-              <p class="last-message">{{ chat.lastMessage }}</p>
+        <a-checkbox-group v-model:value="batchSendList">
+          <div 
+            v-for="chat in chatsList" 
+            :key="chat.user.uuid" 
+            :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',]" @click="onChangeChat(chat)">
+            <div class="chat-left">
+              <a-checkbox :value="chat.user.uuid" name="guestIds" v-show="batchSendMod"></a-checkbox>
+              <a-badge :count="chat.unreadMsgCnt">
+                <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
+              </a-badge>
+              <div class="chat-info">
+                <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
+                <p class="last-message">{{ chat.lastMessage }}</p>
+              </div>
+            </div>
+            <div class="chat-right">
+              <span class="status" :class="{ online: chat.user.isOnline }">
+                {{ chat.user.topAt > 0 ? '[顶]' : '' }}
+                {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
+                {{ chat.user.isOnline ? '在线' : '离线' }}
+              </span>
+              <span class="time">{{ chat.user.lastChatAt ? dayjs(chat.user.lastChatAt*1000).fromNow() : '' }}</span>
             </div>
           </div>
-          <div class="chat-right">
-            <span class="status" :class="{ online: chat.user.isOnline }">
-              {{ chat.user.topAt > 0 ? '[顶]' : '' }}
-              {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
-              {{ chat.user.isOnline ? '在线' : '离线' }}
-            </span>
-            <span class="time">{{ chat.user.lastChatAt ? dayjs(chat.user.lastChatAt*1000).fromNow() : '' }}</span>
-          </div>
-        </div>
+        </a-checkbox-group>
       </div>
-  
     </div>
   </template>
   
@@ -59,6 +70,8 @@ import { chatListPost } from '@/webapi/chat';
 
 dayjs.locale('zh-cn') // +
 dayjs.extend(relativeTime)
+
+const emits = defineEmits(['on-change-chat', 'on-batch-send-click'])
 
 const props = defineProps({
   newMessage: {
@@ -94,6 +107,9 @@ const page = ref(1)
 const pageSize = ref(20)
 const scrollDone = ref(false)
 const lastListType = ref(0)
+const showUnReadDot = ref(false)
+const batchSendMod = ref(false)
+const batchSendList = ref([])
 
 const { newMessage, updateInfo } = toRefs(props)
 
@@ -121,6 +137,10 @@ const handleNewMessage = ()=>{
     fans.lastChatAt = Date.now()
     // 新消息需要向前排
     handleMsgTop(guestId)
+  }
+
+  if(listType.value !== 0) {
+      showUnReadDot.value = true
   }
 }
 
@@ -220,13 +240,15 @@ const tabs = [
 
 const chatsList = ref([]);
 
-const emits = defineEmits(['on-change-chat'])
 const onChangeChat = (chat)=>{
-    // 如果有未读，清零
-    if(chat.unreadMsgCnt > 0 )chat.unreadMsgCnt = 0
-    
-    selectChatId.value = chat.user.uuid
-    emits('on-change-chat',chat)
+  if(batchSendMod.value) {
+    return ;
+  }
+  // 如果有未读，清零
+  if(chat.unreadMsgCnt > 0 )chat.unreadMsgCnt = 0
+  
+  selectChatId.value = chat.user.uuid
+  emits('on-change-chat',chat)
 }
 
 
@@ -235,8 +257,11 @@ const onSearch = ()=>{
   getChatList()
 }
 
-const onChangeTab = ()=>{
+const onChangeTab = (e)=>{
   chatsList.value = []
+  if(listType.value === 0) {
+    showUnReadDot.value = false
+  }
   getChatList()
 }
 
@@ -293,18 +318,81 @@ const onOffline = (e) => {
 }
 
 
+// 群发. 
+
+const selectAll = (e) => {
+  if(e.target.checked) {
+    batchSendList.value = chatsList.value.map((item) => item.user.uuid)
+  } else {
+    batchSendList.value = []
+  }
+}
+
+const batchSend = () => {
+  console.log(listType.value)
+  batchSendMod.value = !batchSendMod.value 
+  emits('on-batch-send-click',batchSendMod.value)
+  if(!batchSend.value){
+    return ;
+  }
+  selectChatId.value = ''
+  batchSendList.value = [];
+}
+
+const batchSendMessage = async (msg) => {
+  // batchSendMessage
+  if(!batchSendMod.value) {
+    return ;
+  }
+  if(batchSendList.value.length === 0) {
+    message.error('请选择要群发的用户')
+    return ;
+  }
+  const params = {
+    message: {
+      msgType: msg.msgType, 
+      content: msg.content, 
+    },
+    guestId: batchSendList.value
+  }
+
+  let res = await ChatApi.batchSendMessage(params)
+  if(res.code === 200) {
+    batchSendMod.value = false
+    emits('batch-send-message-finish', true)
+    chatsList.value.forEach((item) => {
+      if(batchSendList.value.includes(item.user.uuid)) {
+        item.lastMessage = msg.msgType === 'text' ? msg.content : msg.msgType === 'video' ? '视频' : '图片'
+        item.lastChatAt = Date.now()
+      }
+    })
+    batchSendMod.value = false ;
+    selectChatId.value = ''
+    resortChatList()
+    batchSendList.value = []
+    message.success('发送成功')
+  } else {
+    message.error(res.message || '发送失败')
+  }
+}
+
 
 onMounted(()=>{
     getChatList('')
 })
 
 
-defineExpose({ onOnline, onOffline });
+defineExpose({ onOnline, onOffline , batchSendMessage});
 
 </script>
   
 <style lang="less" scoped>
 
+  .flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
   
   .chat-list-container {
     width: 100%;

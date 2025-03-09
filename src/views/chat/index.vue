@@ -3,13 +3,19 @@
         <ChatList :newMessage="newMessage"
             :updateInfo="updateInfo"
             ref="chatListRef"
-            @onChangeChat="onChangeChat"/>
+            @onChangeChat="onChangeChat"
+            @onBatchSendClick="onBatchSendClick"
+            @batch-send-message-finish="onBatchSendMessageFinish"
+        />
 
         <ChatRoom :key="toUser?.user?.uuid" 
             :toUser="toUser" 
+            :batchSendMode="batchSendMode"
+            ref="chatRoomRef"
             @new-message="onNewMessage"
+            @batch-send-message="onBatchSendMessage"
             @changeUserInfo="onChangeUserInfo"
-             @msg:online="onOnline"
+            @msg:online="onOnline"
             @msg:offline="onOffline"
         />
     </div>
@@ -20,11 +26,12 @@ import ChatList from './ChatList.vue'
 import ChatRoom from './ChatRoom.vue'
 
 const chatListRef = ref(null);
-
+const chatRoomRef = ref(null);
 
 const toUser = ref()
 const newMessage = ref()
 const updateInfo = ref()
+const batchSendMode = ref(false)
 
 const onOnline = (e) => {
     chatListRef.value.onOnline(e);
@@ -49,6 +56,23 @@ const onNewMessage = (message)=>{
 const onChangeUserInfo = (info)=>{
     updateInfo.value = info
 }
+
+const onBatchSendMessage = (e) => {
+    if(batchSendMode.value) {
+        chatListRef.value.batchSendMessage(e)
+    }
+}
+
+const onBatchSendClick = (e) => {
+    console.log('onBatchSendClick',e)
+    batchSendMode.value = e 
+}
+
+const onBatchSendMessageFinish = () => {
+    batchSendMode.value = false
+    chatRoomRef.value.onBatchSendSuccess();
+}
+
 </script>
 
 <style lang="less" scoped>

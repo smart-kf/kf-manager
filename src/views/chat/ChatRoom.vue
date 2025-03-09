@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs, watch, defineEmits } from 'vue';
+import { ref, onMounted, nextTick, defineProps, toRefs, watch, defineEmits , h } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
@@ -78,8 +78,7 @@ import { ChatApi } from '@/webapi/index'
 import { message, Spin } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
 import { mergeCdn } from '@/utils/util.ts'
-import ChatUser from './chatUser.vue'
-import { h } from 'vue';
+import ChatUser from './chatUser.vue' 
 import ls from '@/utils/Storage'
 import msgVoice from '@/assets/newmsg.mp3'
 
@@ -97,9 +96,10 @@ const props = defineProps({
     default: () => ({
       user: {},
       lastChatAt: 0,
-      lastMessage: null
+      lastMessage: null,
     })
-  }
+  },
+  batchSendMode: Boolean,
 })
 
 const { toUser } = toRefs(props)
@@ -170,6 +170,12 @@ const newMessage = ref({
   isKf: 1
 })
 
+const onBatchSendSuccess = () => {
+  newMessage.value.content = ''
+}
+
+defineExpose({ onBatchSendSuccess });
+
 // 消息展示区域引用
 const messageDisplay = ref(null);
 
@@ -177,17 +183,36 @@ const messageDisplay = ref(null);
 const sendMessage = (event, msgType, msgText ) => {
   // 阻止默认的换行行为
   event.preventDefault();
+
+    // 验证消息长度: 
+  if(newMessage.value.content.length > 500){
+    message.error('消息长度不能超过500个字符')
+    return 
+  }
+
+
+  // 群发模式. 
+  if(props.batchSendMode) {
+    // emit message 出去. 
+    emit('batch-send-message', {
+      msgType: msgType ? msgType : 'text',
+      content: newMessage.value.content.trim()
+    })
+    return;
+  }
+
   if (!toUser.value?.user?.uuid) {
     message.error('请选中聊天粉丝')
     return
   }
+
+
   newMessage.value.guestId = toUser.value?.user?.uuid
   const messageText = msgText ? msgText : newMessage.value.content.trim();
   if (messageText) {
     newMessage.value.msgType = msgType ? msgType : 'text'
     newMessage.value.content = messageText
     newMessage.value.msgTime = Date.now()
-    newMessage.value.guestAvatar = 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png'
     messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
     // 发送给服务器
     wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
@@ -198,8 +223,11 @@ const sendMessage = (event, msgType, msgText ) => {
   }else{
     message.error('请勿发送空白消息')
   }
-};
 
+  nextTick(() => {
+      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+  });
+};
 
 // 切换表情包选择框
 const onEmojiChange = (emoji) => {
@@ -359,6 +387,11 @@ onMounted(() => {
       newMessage.value.msgType = 'read'
       newMessage.value.guestId = toUser.value?.user?.uuid
       wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
+
+
+      nextTick(() => {
+          messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
+      });
     }
     emit('newMessage',res)
   })
@@ -370,50 +403,8 @@ onMounted(() => {
 
   wsClient.onOnline((res) => {
     emit('msg:online',res)
-  })
+  }) 
 
-
-
-  // wsClient.onMessage((res)=>{
-  //   console.log('wsClient.onMessage',res);
-
-  //   const {type,data} = res || {}
-  //   // 文本
-  //   switch (data?.msgType) {
-  //     case "text":
-  //       messages.value.push({
-  //         msgType: 'text',
-  //         guestName: data.guestName,
-  //         guestAvatar: data.guestAvatar,
-  //         content: data.content,
-  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
-  //       });
-  //     break;
-  //     case "video":
-  //       messages.value.push({
-  //         msgType: 'video',
-  //         guestName: data.guestName,
-  //         guestAvatar: data.guestAvatar,
-  //         content: data.content,
-  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
-  //       });
-  //       break
-  //     case "image":
-  //       messages.value.push({
-  //         msgType: 'image',
-  //         guestName: data.guestName,
-  //         guestAvatar: data.guestAvatar,
-  //         content: data.content,
-  //         msgTime: dayjs(data.msgTime).format('HH:mm:ss'),
-  //       });
-  //       break
-  //     default:
-  //       break;
-  //   }
-
-
-
-  // })
 });
 
 

@@ -21,4 +21,6 @@ export const updateUser = (data: any) => {
 }
 
 
-
+export const batchSendMessage = async (data: any) => {
+    return baseService.post(`/api/kf-be/chat/batchsend`,data)
+}
