@@ -213,6 +213,7 @@ const selectChatId = ref('')
 
 const tabs = [
     { label: '全部', value: 0 },
+    { label: '在线', value: 3 },
     { label: '未读', value: 1 },
     { label: '拉黑', value: 2 },
 ];
