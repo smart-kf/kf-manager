@@ -360,9 +360,9 @@ onMounted(() => {
 
   audio = document.getElementById('audioPlayer')
 
-  Spin.setDefaultIndicator({
-    indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
-  });
+  // Spin.setDefaultIndicator({
+  //   indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
+  // });
 
   let params = {
     wsHost: wsHost,

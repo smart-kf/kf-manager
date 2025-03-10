@@ -28,7 +28,8 @@
 
       <!-- 聊天列表 -->
       <div v-scroll="handleScroll" class="chat-list">
-        <a-checkbox-group v-model:value="batchSendList">
+        <a-spin v-if="isLoading" size="large" />
+        <a-checkbox-group v-if="!isLoading" v-model:value="batchSendList">
           <div 
             v-for="chat in chatsList" 
             :key="chat.user.uuid" 
@@ -53,6 +54,9 @@
             </div>
           </div>
         </a-checkbox-group>
+        <div v-if="chatsList.length===0&&!isLoading">
+          <p class="no-data">无数据</p>
+        </div>
       </div>
     </div>
   </template>
@@ -270,10 +274,12 @@ const handleScroll = throttle(()=>{
   getChatList()
 },500)
 
+const isLoading = ref(false)
 const getChatList = async ()=>{
     if(searchBy.value.trim() === '' && lastListType.value == listType.value && scrollDone.value){
       return
     }
+    isLoading.value = true
     lastListType.value = listType.value
     const params = {
       page: page.value,
@@ -295,6 +301,7 @@ const getChatList = async ()=>{
     }else{
       message.error(res.message || '请求失败，请联系管理员');
     }
+    isLoading.value = false
 }
 
 // 用户上线
@@ -452,9 +459,26 @@ defineExpose({ onOnline, onOffline , batchSendMessage});
   }
   
   /* 聊天列表 */
-  .chat-list {
+  :deep(.chat-list) {
     flex: 1;
     overflow-y: auto;
+    position: relative;
+
+    .ant-checkbox-group{
+      display: block;
+    }
+
+    .ant-spin-spinning,.no-data{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .no-data{
+      font-size: 18px;
+      color: #666;
+    }
   }
   
   .chat-item {
