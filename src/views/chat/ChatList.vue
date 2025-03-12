@@ -44,7 +44,7 @@
                 {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
                 {{ chat.user.isOnline ? '在线' : '离线' }}
               </span>
-              <span class="time">{{ chat.user.lastChatAt ? dayjs(chat.user.lastChatAt*1000).fromNow() : '' }}</span>
+              <span class="time">{{ formatTime(chat.user.lastChatAt) }}</span>
             </div>
           </div>
         </a-checkbox-group>
@@ -122,6 +122,18 @@ watch(() => props.newMessage, () => {
   immediate: true
 })
 
+const formatTime = (timestamp) => {
+  const msgDate = dayjs(timestamp * 1000);
+  const today = dayjs();
+  const yesterday = today.subtract(1, 'day');
+
+  if (msgDate.isSame(today, 'day')) {
+    return msgDate.format('HH:mm');
+  } else {
+    return msgDate.format('YYYY-MM-DD');
+  }
+};
+
 const handleNewMessage = ()=>{
   const {guestId,msgType,content} = newMessage.value
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
@@ -132,7 +144,7 @@ const handleNewMessage = ()=>{
     if(selectChatId.value !== fans.user.uuid){
       fans.unreadMsgCnt++
     }
-    fans.lastChatAt = dayjs().unix()
+    fans.user.lastChatAt = dayjs().unix()
     // 新消息需要向前排
     handleMsgTop(guestId)
   }

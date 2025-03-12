@@ -212,7 +212,7 @@ const sendMessage = (event, msgType, msgText ) => {
   if (messageText) {
     newMessage.value.msgType = msgType ? msgType : 'text'
     newMessage.value.content = messageText
-    newMessage.value.msgTime = Date.now()
+    newMessage.value.msgTime = dayjs().unix()
     messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
     // 发送给服务器
     wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
