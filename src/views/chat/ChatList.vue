@@ -12,18 +12,12 @@
       </div>
   
       <!-- Tab 切换 -->
-      
-      <div class="tabs" style="margin:auto;width: 100%;">
-        <a-tabs v-model:activeKey="listType" @change="onChangeTab" style="width: 100%;">
-            <a-tab-pane v-for="tab in tabs" :key="tab.value">
-              <template #tab>
-                <span>
-                  <!-- <a-checkbox value="1" @change="selectAll" name="guestIds" v-show="batchSendMod" ></a-checkbox> -->
-                  {{ tab.label }} <a-badge v-if="showUnReadDot && tab.value === 0" dot></a-badge>
-                </span>
-              </template>
-            </a-tab-pane>
-        </a-tabs>
+      <div class="tabs">
+        <div v-for="tab in tabs" :key="tab.value" :class="['tab-pane',tab.value===listType?'active-tab-pane':'']" @click="onChangeTab(tab)">
+          <a-checkbox v-if="batchSendMod && tab.value===listType" v-model:checked="checked" @change="selectAll" name="guestIds"></a-checkbox>
+          <span style="margin-left: 4px;">{{ tab.label }}</span>
+          <a-badge v-if="showUnReadDot && tab.value === 0" dot></a-badge>
+        </div>
       </div>
 
       <!-- 聊天列表 -->
@@ -138,7 +132,7 @@ const handleNewMessage = ()=>{
     if(selectChatId.value !== fans.user.uuid){
       fans.unreadMsgCnt++
     }
-    fans.lastChatAt = Date.now()
+    fans.lastChatAt = dayjs().unix()
     // 新消息需要向前排
     handleMsgTop(guestId)
   }
@@ -261,8 +255,14 @@ const onSearch = ()=>{
   getChatList()
 }
 
-const onChangeTab = (e)=>{
+const onChangeTab = ({value})=>{
+  if(listType.value === value) return
+  // 切换tab
+  listType.value = value
   chatsList.value = []
+  // 复选框清空
+  batchSendList.value = []
+  checked.value = false
   if(listType.value === 0) {
     showUnReadDot.value = false
   }
@@ -326,8 +326,10 @@ const onOffline = (e) => {
 
 
 // 群发. 
-
+const checked = ref(false)
 const selectAll = (e) => {
+  // 防冒泡
+  e.stopPropagation()
   if(e.target.checked) {
     batchSendList.value = chatsList.value.map((item) => item.user.uuid)
   } else {
@@ -336,14 +338,12 @@ const selectAll = (e) => {
 }
 
 const batchSend = () => {
-  console.log(listType.value)
   batchSendMod.value = !batchSendMod.value 
   emits('on-batch-send-click',batchSendMod.value)
-  if(!batchSend.value){
-    return ;
-  }
+  checked.value = false
   selectChatId.value = ''
   batchSendList.value = [];
+  emits('on-change-chat',{})
 }
 
 const batchSendMessage = async (msg) => {
@@ -370,7 +370,7 @@ const batchSendMessage = async (msg) => {
     chatsList.value.forEach((item) => {
       if(batchSendList.value.includes(item.user.uuid)) {
         item.lastMessage = msg.msgType === 'text' ? msg.content : msg.msgType === 'video' ? '视频' : '图片'
-        item.lastChatAt = Date.now()
+        item.lastChatAt = dayjs().unix()
       }
     })
     batchSendMod.value = false ;
@@ -437,25 +437,24 @@ defineExpose({ onOnline, onOffline , batchSendMessage});
   
   /* Tabs */
   .tabs {
+    width: 100%;
     display: flex;
     justify-content: space-around;
     padding: 0 10px;
     background: #f9f9f9;
     border-bottom: 1px solid #ddd;
-  }
-  
-  .tabs button {
-    padding: 10px 20px;
-    border: none;
-    background: #f0f0f0;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 1em;
-  }
-  
-  .tabs button.active {
-    background: #007bff;
-    color: #fff;
+    margin:auto;
+    .tab-pane{
+      height: 46px;
+      line-height: 46px;
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+    }
+    .active-tab-pane{
+      color: #599cf8;
+      border-bottom: 2px solid #599cf8;
+    }
   }
   
   /* 聊天列表 */

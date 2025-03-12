@@ -251,7 +251,7 @@ const selectFile = (type) => {
     if (file) {
       console.log('file:', file);
 
-      //TODO 上传至服务器，得到url后展示在消息框中
+      //上传至服务器，得到url后展示在消息框中
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileType', type);
