@@ -39,7 +39,14 @@
                     <div v-for="item in quickReplyList" :key="item.id" class="quick-reply-item">
                         <div class="item-content">
                             <h3>{{ item.title }}</h3>
-                            <div v-if="item.type === 'text'" class="content">{{ item.content }}</div>
+                            <div v-if="item.type === 'text'" class="content">
+                                <a-popover>
+                                    <template #content>
+                                        <div style="max-width:200px;word-break: break-all;">{{  item.content }}</div>
+                                    </template>
+                                    {{ showText(item.content, 50) }}
+                                </a-popover>
+                            </div>
                             <img v-else-if="item.type === 'image'" :src="ls.get('cdnDomain') + item.content" alt="快捷回复图片" />
                             <video v-else-if="item.type === 'video'" controls>
                                 <source :src="ls.get('cdnDomain') + item.content" type="video/mp4" />
@@ -67,6 +74,7 @@ import { reactive } from 'vue';
 import { message } from 'ant-design-vue';
 import ls from '@/utils/Storage'
 import { SendOutlined } from '@ant-design/icons-vue'
+import { showText } from '@/utils/util'
 
 
 const props = defineProps({
@@ -207,10 +215,10 @@ const sendQuickReply = async (e) => {
         msg.content = e.content
         msg.msgType = 'text'
     } else if(e.type === 'image') {
-        msg.content = `${ls.get('cdnDomain')}${e.content}`
+        msg.content = `${e.content}`
         msg.msgType = 'image'
     } else if(e.type === 'video') {
-        msg.content = `${ls.get('cdnDomain')}${e.content}`
+        msg.content = `$${e.content}`
         msg.msgType = 'video'
     } 
     // 发送出去. 

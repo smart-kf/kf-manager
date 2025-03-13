@@ -25,30 +25,30 @@
             <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
           </div>
           <div class="message-content">
-            <p v-if="message.msgType === 'text'">{{ message.content }}</p>
+            <div v-if="message.msgType === 'text'" v-html="renderMessage(message.content)"></div>
             <div v-if="message.msgType === 'video'" class="video-contain">
-              <video :src="message.content" class="video-box"></video>
+              <video :src="mergeCdn(message.content)" class="video-box"></video>
               <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)" />
             </div>
-            <a-image v-if="message.msgType === 'image'" :width="200" :src="message.content" class="image-box" />
+            <a-image v-if="message.msgType === 'image'" :width="200" :src="mergeCdn(message.content)" class="image-box" />
             <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
           </div>
         </div>
       </div>
 
       <!-- 消息输入区域 -->
-      <div class="message-input">
-        <div class="tools">
-          <EmojiSelect @onChange="onEmojiChange"></EmojiSelect>
-          <FileImageOutlined @click="selectFile('image')" class="emoji-text" />
-          <VideoCameraOutlined @click="selectFile('video')" class="emoji-text" />
+      <a-spin :spinning="loading">
+        <div class="message-input">
+          <div :class="['tools', { 'disable': disableChatBox() }]">
+            <EmojiSelect @onChange="onEmojiChange"></EmojiSelect>
+            <FileImageOutlined @click="selectFile('image')" class="emoji-text" />
+            <VideoCameraOutlined @click="selectFile('video')" class="emoji-text" />
+          </div>
+          <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false"
+            @pressEnter="onSendMessage" :disabled="disableChatBox()" />
+          <a-button @click="onSendMessage" type="primary" :class="['send-btn', { 'disable': disableChatBox() }]">发送</a-button>
         </div>
-        <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false"
-          @pressEnter="sendMessage" />
-        <a-button @click="sendMessage" type="primary" class="send-btn">发送</a-button>
-      </div>
-
-
+      </a-spin>
     </div>
 
     <!-- 当前用户信息 -->
@@ -77,7 +77,7 @@ import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
 import { message, Spin } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
-import { mergeCdn } from '@/utils/util.ts'
+import { mergeCdn, highlightURLs } from '@/utils/util.ts'
 import ChatUser from './chatUser.vue' 
 import ls from '@/utils/Storage'
 import msgVoice from '@/assets/newmsg.mp3'
@@ -89,6 +89,7 @@ const voiceFlag = systemConfig.newMessageVoice
 const wsHost = ls.get('wsHost')
 const wsFullHost = ls.get('wsFullHost')
 const token = ls.get('token')
+const loading = ref(false)
 
 const props = defineProps({
   toUser: {
@@ -102,9 +103,20 @@ const props = defineProps({
   batchSendMode: Boolean,
 })
 
+
 const { toUser } = toRefs(props)
 const scrollId = ref(0)
 const allMsgLoaded = ref(false)
+
+const disableChatBox = () => {
+  if(props.batchSendMode) {
+    return false ;
+  }
+  if(toUser.value?.user?.uuid) {
+    return false ;
+  }
+  return true; 
+}
 
 watch(() => props.toUser, () => {
   if (toUser.value?.user?.uuid) {
@@ -178,6 +190,33 @@ defineExpose({ onBatchSendSuccess });
 
 // 消息展示区域引用
 const messageDisplay = ref(null);
+
+
+// 状态管理
+let isCoolingDown = ref(false); // 是否在冷却期
+let lastSendTime = ref(0);     // 最后发送时间戳
+
+
+const onSendMessage = (event,msgType,msgText) => {
+  if (isCoolingDown.value) {
+    message.error('消息发送过于频繁，请稍后再试');
+    return;
+  }
+  if (Date.now() - lastSendTime < 500) {
+    isCoolingDown.value = true;
+  }
+  throttledSend(event,msgType,msgText);
+}
+
+const throttledSend = throttle((event,msgType,msgText) => {
+  isCoolingDown.value = false;
+  sendMessage(event,msgType,msgText)
+  lastSendTime.value = Date.now();
+},500, { 
+    leading: true,  // 立即执行第一次点击
+    trailing: false // 不执行最后一次点击的延迟回调
+})
+
 
 // 回车，发送消息
 const sendMessage = (event, msgType, msgText ) => {
@@ -255,33 +294,13 @@ const selectFile = (type) => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileType', type);
-
+      loading.value = true
       const res = await ChatApi.fileUpload(formData)
+      loading.value = false 
       if (res && res.code === 200 && res.data) {
         const { cdnHost, path } = res.data
-        const obj = {
-          msgType: type,
-          guestName: '',
-          guestAvatar: 'https://www.helloimg.com/i/2025/01/06/677bc71442919.png',
-          content: `${cdnHost}${path}`,
-          msgTime: Date.now(),
-          isKf: 1
-        }
-        messages.value.push(JSON.parse(JSON.stringify(obj)));
+        onSendMessage({preventDefault:()=>{}},type,`${path}`)
       }
-
-      //   const currentTime = new Date().toLocaleTimeString([], {
-      //     hour: '2-digit',
-      //     minute: '2-digit',
-      //   });
-      //   messages.value.push({
-      //     sender: 'me',
-      //     name: 'You',
-      //     avatar: 'https://via.placeholder.com/40',
-      //     text: `Sent a ${type}: ${file.name}`,
-      //     time: currentTime,
-      //   });
-
       // 滚动到底部
       nextTick(() => {
         messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
@@ -295,6 +314,11 @@ const selectFile = (type) => {
 let preScrollHeight = 0
 let preScrollTop = 0
 const getChatMsg = async () => {
+
+  if(toUser.value?.user?.uuid === ''){
+    return 
+  }
+
   // 当加载了所有消息，不再发送请求，最老的消息都加载了就没得了. 
   if(allMsgLoaded.value) {
     return 
@@ -351,7 +375,7 @@ const onChangeUserInfo = (updateInfo)=>{
 }
 
 const onQuickReply = (msg) => {
-  sendMessage({preventDefault:()=>{}},msg.msgType,msg.content)
+  onSendMessage({preventDefault:()=>{}},msg.msgType,msg.content)
 }
 
 let audio
@@ -409,6 +433,14 @@ onMounted(() => {
 });
 
 
+const renderMessage = (message) => {
+  const messageEl = document.createElement('p');
+  // 处理换行和 URL
+  let html = highlightURLs(message);
+  return  html
+}
+
+
 </script>
 
 <style lang="less" scoped>
@@ -422,6 +454,12 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.disable{
+  cursor: not-allowed;
+  pointer-events: none; /* 禁用所有鼠标事件 */
+  filter: grayscale(80%); /* 灰化效果 */
+  opacity: 0.7;
+}
 .to-user {
   width: 100%;
   height: 53px;
@@ -531,6 +569,7 @@ onMounted(() => {
   border-top: 1px solid #ddd;
   background: #fff;
   min-height: 200px;
+  border-right:1px solid #ddd;
 }
 
 .message-input .tools {

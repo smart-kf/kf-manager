@@ -209,3 +209,36 @@ export function showText(str, maxLength = 20) {
     ? chars.slice(0, maxLength).join('') + '...' 
     : str;
 }
+
+
+// URL 匹配正则表达式 (支持大多数常见格式)
+const URL_REGEX = /\b(https?:\/\/|www\.|ftp:\/\/|mailto:)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi;
+
+// 安全转义函数 (防止 XSS)
+const escapeHTML = str => {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+};
+
+// URL 高亮转换器
+export function highlightURLs(text) {
+  // 步骤 1: 转义原始文本
+  const escapedText = escapeHTML(text);
+  
+  // 步骤 2: 匹配并替换 URL
+  return escapedText.replace(URL_REGEX, match => {
+    // 补全协议前缀
+    let url = match;
+    if (url.startsWith('www.')) {
+      url = 'http://' + url;
+    }
+    
+    // 构建安全链接
+    return `<a href="${url}" 
+               class="highlighted-url" 
+               target="_blank" 
+               rel="noopener noreferrer"
+             >${match}</a>`;
+  });
+};

@@ -139,7 +139,7 @@ const handleNewMessage = ()=>{
   const idx = chatsList.value.findIndex((item)=>item.user.uuid === guestId)
   if(idx>-1){
     const fans = chatsList.value[idx]
-    fans.lastMessage = msgType === 'text' ? content : msgType === 'video' ? '视频' : '图片'
+    fans.lastMessage = msgType === 'text' ? content : (msgType === 'video' ? '[视频消息]' : '[图片消息]')
     // 当前选中的粉丝和接收消息的粉丝不是同一个时，未读数加1
     if(selectChatId.value !== fans.user.uuid){
       fans.unreadMsgCnt++
