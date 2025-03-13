@@ -158,15 +158,7 @@ let wsClient
 // }
 
 // 消息对象数组
-const messages = ref([
-  // {
-  //   msgType: 'text', image || video
-  //   content: '',
-  //   msgTime: '', // 时间戳
-  //   guestAvatar: '',  //头像
-  //   time: '10:15 AM',
-  // },
-]);
+const messages = ref([]);
 
 // 输入框中的新消息
 const newMessage = ref({
@@ -364,7 +356,7 @@ const loadHistoryMsg = throttle(() => {
 const visible = ref(false)
 const videoUrl = ref('')
 const playVideo = (url) => {
-  videoUrl.value = url
+  videoUrl.value = mergeCdn(url)
   visible.value = true
 }
 

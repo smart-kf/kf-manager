@@ -218,7 +218,7 @@ const sendQuickReply = async (e) => {
         msg.content = `${e.content}`
         msg.msgType = 'image'
     } else if(e.type === 'video') {
-        msg.content = `$${e.content}`
+        msg.content = `${e.content}`
         msg.msgType = 'video'
     } 
     // 发送出去. 
