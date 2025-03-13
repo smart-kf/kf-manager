@@ -216,8 +216,6 @@ const state = reactive({
   previewVisible: false // 图片预览弹窗
 })
 
-console.log(state.action)
-
 // 重置数据
 const resetData = () => {
   state.title = ''
@@ -235,11 +233,11 @@ const resetData = () => {
 const initEditor = () => {
   resetData()
   if (props.actionType === 'edit') {
-    state.title = props.isAi ? props.editData.title : ''
+    state.title = props.editData.title || ''
     state.activeKey = props.editData.contentType
     if (props.editData.type === 'text') {
       state.activeKey = 'text'
-      // editorRef.value.setHtml(props.editData.content)
+      state.content = props.editData.content
     }
     if (props.editData.type === 'video') {
       state.activeKey = 'video'
@@ -315,7 +313,7 @@ const handleOk = async () => {
     params.id = props.editData.id
     params.sort = props.editData.sort
   } else {
-    params.sort = props.maxSort + 1 
+    params.sort = props.maxSort + 1
   }
   if (showTitle()) {
     params.title = state.title

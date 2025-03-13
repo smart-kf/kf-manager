@@ -10,16 +10,16 @@ const lifecycle = process.env.npm_lifecycle_event
 export default defineConfig(({ mode }) => {
   return {
     base: './',
-    // server: {
-    //   port: 8080,
-    //   proxy: {
-    //     '/api': {
-    //       target: 'https://api.smartkf.top/', // 本地调试
-    //       changeOrigin: true
-    //       // rewrite: (path) => path.replace(/^\/api/, '')
-    //     }
-    //   }
-    // },
+    server: {
+      port: 8080,
+      proxy: {
+        '/api': {
+          target: 'https://api.smartkf.top/', // 本地调试
+          changeOrigin: true
+          // rewrite: (path) => path.replace(/^\/api/, '')
+        }
+      }
+    },
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 5000,

@@ -84,7 +84,6 @@ export const storage = {
   }
 }
 
-
 export const getCdnDomain = () => {
   return storage.get('cdnDomain')
 }

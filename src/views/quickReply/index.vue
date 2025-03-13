@@ -9,27 +9,25 @@
         </span>
       </div>
     </div>
-    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 'max-content' }" :pagination="false">
+    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 1200 }" :pagination="false">
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
           <template v-if="record.type === 'video'">
-            <span>{{ getCdnDomain() + record.content }}</span>
+            <MaterialPreview mediaType="video" :url="record.content"></MaterialPreview>
           </template>
           <template v-else-if="record.type === 'image'">
-            <a-image :width="100" :height="100" :src="getCdnDomain()+record.content" :fallback="failImg" />
+            <MaterialPreview :url="record.content"></MaterialPreview>
           </template>
           <template v-else>
-            <a-popover>
-              <template #content>
-                <div style="max-width:200px;word-break: break-all;">{{ record.content }}</div>
-              </template>
-              {{ showText(record.content) }}
-            </a-popover>
+            <TextTip :text="record.content" />
           </template>
+        </template>
+        <template v-if="column.dataIndex === 'title'">
+          <TextTip :text="record.title" />
         </template>
         <template v-if="column.dataIndex === 'sort'">
           <a-space>
-            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" @change='onChangeStatus(record)' />
+            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" @change="onChangeStatus(record)" />
           </a-space>
         </template>
 
@@ -56,8 +54,15 @@
       show-quick-jumper
       :show-total="(total) => `共 ${total} 条`"
     />
-      
-    <MaterialDrawer :maxSort="state.maxSort" v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData" :msgType="searchParams.msgType" @refesh="getTableList"></MaterialDrawer>
+
+    <MaterialDrawer
+      :maxSort="state.maxSort"
+      v-model:model-value="state.showDia"
+      :action-type="state.actionType"
+      :edit-data="state.editData"
+      :msgType="searchParams.msgType"
+      @refesh="getTableList"
+    ></MaterialDrawer>
   </div>
 </template>
 
@@ -65,12 +70,10 @@
 import { computed, ref, onMounted, reactive } from 'vue'
 import { ReloadOutlined, EditOutlined, DeleteOutlined, SaveTwoTone } from '@ant-design/icons-vue'
 import MaterialDrawer from '@/components/MaterialDrawer/index.vue'
-import logo from '@/assets/defaultUser.png'
-import failImg from '@/assets/failImg.png'
+import TextTip from '@/components/TextTip/index.vue'
+import MaterialPreview from '@/components/MaterialPreview/index.vue'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi, ChatApi } from '@/webapi/index'
-import { getCdnDomain } from '@/utils/Storage'
-import { showText } from '@/utils/util'
 import { throttle } from 'lodash-es'
 
 const state = reactive({
@@ -80,8 +83,8 @@ const state = reactive({
   actionType: 'add',
   showDia: false,
   loading: false,
-  total: 0 , 
-  maxSort: 0,
+  total: 0,
+  maxSort: 0
 })
 
 const searchParams = reactive({
@@ -97,7 +100,7 @@ const columns = [
     align: 'center',
     dataIndex: 'title',
     ellipsis: true,
-    width: 200
+    width: 300
   },
   {
     title: '回复内容',
@@ -123,6 +126,7 @@ const columns = [
   {
     title: '操作',
     align: 'center',
+    fixed: 'right',
     dataIndex: 'operation',
     width: 200
   }
@@ -186,20 +190,17 @@ const getTableList = async () => {
   state.loading = false
   if (code === 200) {
     state.dataSource = (data.list || []).map((el) => {
-      return el
-    })
-    data.list.map(it => {
-      if (it.sort > state.maxSort) {
-        state.maxSort = it.sort
+      if (el.sort > state.maxSort) {
+        state.maxSort = el.sort
       }
+      return el
     })
     state.total = data.total || 0
   } else {
     Message.error(message || '请求失败')
   }
-  console.log(state.maxSort)
 }
- 
+
 onMounted(() => {
   getTableList()
 })

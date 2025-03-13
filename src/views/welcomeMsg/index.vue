@@ -9,22 +9,17 @@
         </span>
       </div>
     </div>
-    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 'max-content' }" :pagination="false">
+    <a-table bordered :data-source="state.dataSource" :loading="state.loading" :columns="columns" size="middle" :scroll="{ x: 1200 }" :pagination="false">
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
           <template v-if="record.type === 'video'">
-            <span>{{ getCdnDomain() + record.content }}</span>
+            <MaterialPreview mediaType="video" :url="record.content"></MaterialPreview>
           </template>
           <template v-else-if="record.type === 'image'">
-            <a-image :width="100" :height="100" :src="getCdnDomain() + record.content" :fallback="failImg" />
+            <MaterialPreview :url="record.content"></MaterialPreview>
           </template>
           <template v-else>
-            <a-popover>
-              <template #content>
-                <div style="max-width:200px;word-break: break-all;">{{  record.content }}</div>
-              </template>
-              {{ showText(record.content) }}
-            </a-popover>
+            <TextTip :text="record.content" />
           </template>
         </template>
         <template v-if="column.dataIndex === 'sort'">
@@ -55,8 +50,15 @@
       show-quick-jumper
       :show-total="(total) => `共 ${total} 条`"
     />
-     
-    <MaterialDrawer  :max-sort="state.maxSort" v-model:model-value="state.showDia" :msgType="searchParams.msgType" :action-type="state.actionType" :edit-data="state.editData" @refesh="getTableList"></MaterialDrawer>
+
+    <MaterialDrawer
+      :max-sort="state.maxSort"
+      v-model:model-value="state.showDia"
+      :msgType="searchParams.msgType"
+      :action-type="state.actionType"
+      :edit-data="state.editData"
+      @refesh="getTableList"
+    ></MaterialDrawer>
   </div>
 </template>
 
@@ -64,12 +66,12 @@
 import { computed, ref, onMounted, reactive } from 'vue'
 import { ReloadOutlined, EditOutlined, DeleteOutlined, SaveTwoTone } from '@ant-design/icons-vue'
 import MaterialDrawer from '@/components/MaterialDrawer/index.vue'
-import failImg from '@/assets/failImg.png'
+import TextTip from '@/components/TextTip/index.vue'
+import MaterialPreview from '@/components/MaterialPreview/index.vue'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
 import { getCdnDomain } from '@/utils/Storage'
 import { throttle } from 'lodash-es'
-import { showText } from '@/utils/util'
 
 const state = reactive({
   dataSource: [],
@@ -78,8 +80,8 @@ const state = reactive({
   actionType: 'add',
   showDia: false,
   loading: false,
-  total: 0, 
-  maxSort: 0,
+  total: 0,
+  maxSort: 0
 })
 
 const searchParams = reactive({
@@ -113,6 +115,7 @@ const columns = [
   {
     title: '操作',
     align: 'center',
+    fixed: 'right',
     dataIndex: 'operation',
     width: 200
   }
@@ -160,7 +163,7 @@ const onChangeStatus = async (record) => {
     Message.success('更新成功！')
     throttle(() => {
       getTableList()
-    }, 1500);
+    }, 1500)
   } else {
     Message.error(message || '请求失败')
   }
@@ -175,18 +178,16 @@ const getTableList = async () => {
   state.loading = false
   if (code === 200) {
     state.dataSource = (data.list || []).map((el) => {
-      return el
-    })
-    data.list.map(it => {
-      if (it.sort > state.maxSort) {
-        state.maxSort = it.sort
+      if (el.sort > state.maxSort) {
+        state.maxSort = el.sort
       }
+      return el
     })
     state.total = data.total || 0
   } else {
     Message.error(message || '请求失败')
   }
-} 
+}
 
 onMounted(() => {
   getTableList()
