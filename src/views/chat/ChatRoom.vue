@@ -212,7 +212,7 @@ const sendMessage = (event, msgType, msgText ) => {
   if (messageText) {
     newMessage.value.msgType = msgType ? msgType : 'text'
     newMessage.value.content = messageText
-    newMessage.value.msgTime = Date.now()
+    newMessage.value.msgTime = dayjs().unix()
     messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
     // 发送给服务器
     wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
@@ -251,7 +251,7 @@ const selectFile = (type) => {
     if (file) {
       console.log('file:', file);
 
-      //TODO 上传至服务器，得到url后展示在消息框中
+      //上传至服务器，得到url后展示在消息框中
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileType', type);
@@ -360,9 +360,9 @@ onMounted(() => {
 
   audio = document.getElementById('audioPlayer')
 
-  Spin.setDefaultIndicator({
-    indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
-  });
+  // Spin.setDefaultIndicator({
+  //   indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
+  // });
 
   let params = {
     wsHost: wsHost,
