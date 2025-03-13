@@ -19,7 +19,12 @@
             <a-image :width="100" :height="100" :src="getCdnDomain() + record.content" :fallback="failImg" />
           </template>
           <template v-else>
-            <span>{{ record.content }}</span>
+            <a-popover>
+              <template #content>
+                <div style="max-width:200px;word-break: break-all;">{{  record.content }}</div>
+              </template>
+              {{ showText(record.content) }}
+            </a-popover>
           </template>
         </template>
         <template v-if="column.dataIndex === 'sort'">
@@ -50,7 +55,8 @@
       show-quick-jumper
       :show-total="(total) => `共 ${total} 条`"
     />
-    <MaterialDrawer v-model:model-value="state.showDia" :msgType="searchParams.msgType" :action-type="state.actionType" :edit-data="state.editData" @refesh="getTableList"></MaterialDrawer>
+     
+    <MaterialDrawer  :max-sort="state.maxSort" v-model:model-value="state.showDia" :msgType="searchParams.msgType" :action-type="state.actionType" :edit-data="state.editData" @refesh="getTableList"></MaterialDrawer>
   </div>
 </template>
 
@@ -63,6 +69,7 @@ import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
 import { getCdnDomain } from '@/utils/Storage'
 import { throttle } from 'lodash-es'
+import { showText } from '@/utils/util'
 
 const state = reactive({
   dataSource: [],
@@ -71,7 +78,8 @@ const state = reactive({
   actionType: 'add',
   showDia: false,
   loading: false,
-  total: 0
+  total: 0, 
+  maxSort: 0,
 })
 
 const searchParams = reactive({
@@ -89,7 +97,7 @@ const columns = [
     dataIndex: 'content'
   },
   {
-    title: '发送顺序(小到大)',
+    title: '排序',
     key: 'sort',
     align: 'center',
     dataIndex: 'sort',
@@ -169,11 +177,16 @@ const getTableList = async () => {
     state.dataSource = (data.list || []).map((el) => {
       return el
     })
+    data.list.map(it => {
+      if (it.sort > state.maxSort) {
+        state.maxSort = it.sort
+      }
+    })
     state.total = data.total || 0
   } else {
     Message.error(message || '请求失败')
   }
-}
+} 
 
 onMounted(() => {
   getTableList()

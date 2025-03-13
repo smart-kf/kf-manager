@@ -82,6 +82,7 @@ import { useUserStore } from '@/store/modules'
 import { SystemApi } from '@/webapi/index'
 import ls from '@/utils/Storage'
 import defaultUser from '@/assets/defaultUser.png'
+import { baseURL } from '@/utils/util'
 
 const userStore = useUserStore()
 
@@ -115,7 +116,7 @@ const state = reactive({
     { label: '过滤机房及非大陆', value: 4 }
   ],
   fileList: [],
-  action: window.location.origin + '/api/kf-be/upload',
+  action: baseURL + 'api/kf-be/upload',
   headers: {
     Authorization: ls.get('token')
   },

@@ -145,6 +145,10 @@ const props = defineProps({
   editData: {
     type: Object,
     default: () => {}
+  },
+  maxSort: {
+    type: Number,
+    default: 0
   }
 })
 const openModal = computed({
@@ -310,6 +314,8 @@ const handleOk = async () => {
   if (props.editData.id) {
     params.id = props.editData.id
     params.sort = props.editData.sort
+  } else {
+    params.sort = props.maxSort + 1 
   }
   if (showTitle()) {
     params.title = state.title

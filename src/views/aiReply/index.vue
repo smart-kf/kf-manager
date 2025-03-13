@@ -19,7 +19,12 @@
             <a-image :width="100" :height="100" :src="getCdnDomain() + record.content" :fallback="failImg" />
           </template>
           <template v-else>
-            <span>{{ record.content }}</span>
+            <a-popover>
+              <template #content>
+                <div style="max-width:200px;word-break: break-all;">{{  record.content }}</div>
+              </template>
+              {{ showText(record.content) }}
+            </a-popover>
           </template>
         </template>
         <template v-if="column.dataIndex === 'enable'">
@@ -49,6 +54,7 @@
     <MaterialDrawer
       v-model:model-value="state.showDia"
       :is-ai="true"
+      :max-sort="state.maxSort"
       :msgType="searchParams.msgType"
       :action-type="state.actionType"
       @refesh="getTableList"
@@ -69,6 +75,7 @@ import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
 import { getCdnDomain } from '@/utils/Storage'
 import { throttle } from 'lodash-es'
+import { showText } from '@/utils/util'
 
 const state = reactive({
   dataSource: [],
@@ -77,7 +84,8 @@ const state = reactive({
   actionType: 'add',
   showDia: false,
   loading: false,
-  total: 0
+  total: 0, 
+  maxSort: 0,
 })
 
 const searchParams = reactive({
@@ -184,10 +192,16 @@ const getTableList = async () => {
       return el
     })
     state.total = data.total || 0
+    data.list.map(it => {
+      if (it.sort > state.maxSort) {
+        state.maxSort = it.sort
+      }
+    })
   } else {
     Message.error(message || '请求失败')
   }
 }
+ 
 
 onMounted(() => {
   getTableList()

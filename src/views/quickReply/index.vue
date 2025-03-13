@@ -13,21 +13,23 @@
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
           <template v-if="record.type === 'video'">
-            <span>{{ record.content }}</span>
+            <span>{{ getCdnDomain() + record.content }}</span>
           </template>
           <template v-else-if="record.type === 'image'">
-            <a-image :width="100" :height="100" :src="record.content" :fallback="failImg" />
+            <a-image :width="100" :height="100" :src="getCdnDomain()+record.content" :fallback="failImg" />
           </template>
           <template v-else>
-            <span>{{ record.content }}</span>
+            <a-popover>
+              <template #content>
+                <div style="max-width:200px;word-break: break-all;">{{ record.content }}</div>
+              </template>
+              {{ showText(record.content) }}
+            </a-popover>
           </template>
         </template>
         <template v-if="column.dataIndex === 'sort'">
           <a-space>
-            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" />
-            <a-button size="small" @click="onChangeStatus(record)">
-              <template #icon><SaveTwoTone /></template>
-            </a-button>
+            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" @change='onChangeStatus(record)' />
           </a-space>
         </template>
 
@@ -54,7 +56,8 @@
       show-quick-jumper
       :show-total="(total) => `共 ${total} 条`"
     />
-    <MaterialDrawer v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData" :msgType="searchParams.msgType" @refesh="getTableList"></MaterialDrawer>
+      
+    <MaterialDrawer :maxSort="state.maxSort" v-model:model-value="state.showDia" :action-type="state.actionType" :edit-data="state.editData" :msgType="searchParams.msgType" @refesh="getTableList"></MaterialDrawer>
   </div>
 </template>
 
@@ -66,6 +69,9 @@ import logo from '@/assets/defaultUser.png'
 import failImg from '@/assets/failImg.png'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi, ChatApi } from '@/webapi/index'
+import { getCdnDomain } from '@/utils/Storage'
+import { showText } from '@/utils/util'
+import { throttle } from 'lodash-es'
 
 const state = reactive({
   dataSource: [],
@@ -74,7 +80,8 @@ const state = reactive({
   actionType: 'add',
   showDia: false,
   loading: false,
-  total: 0
+  total: 0 , 
+  maxSort: 0,
 })
 
 const searchParams = reactive({
@@ -161,7 +168,9 @@ const onChangeStatus = async (record) => {
   }
   let { code, message }: any = await MessageApi.updateWelcome(params)
   if (code === 200) {
-    getTableList()
+    throttle(() => {
+      getTableList()
+    }, 1500)
     Message.success('更新成功！')
   } else {
     Message.error(message || '请求失败')
@@ -179,12 +188,18 @@ const getTableList = async () => {
     state.dataSource = (data.list || []).map((el) => {
       return el
     })
+    data.list.map(it => {
+      if (it.sort > state.maxSort) {
+        state.maxSort = it.sort
+      }
+    })
     state.total = data.total || 0
   } else {
     Message.error(message || '请求失败')
   }
+  console.log(state.maxSort)
 }
-
+ 
 onMounted(() => {
   getTableList()
 })

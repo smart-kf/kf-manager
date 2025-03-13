@@ -198,3 +198,14 @@ export function mergeCdn(path) {
   const { value } = JSON.parse(localStorage.getItem('cdnDomain'))
   return `${value}${path}`
 }
+
+
+export function showText(str, maxLength = 20) {
+  // 将字符串拆分为完整的 Unicode 字符数组
+  const chars = Array.from(str);
+  
+  // 截断并重新拼接为字符串
+  return chars.length > maxLength 
+    ? chars.slice(0, maxLength).join('') + '...' 
+    : str;
+}
