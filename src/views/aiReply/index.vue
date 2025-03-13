@@ -13,22 +13,14 @@
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'content'">
           <template v-if="record.type === 'video'">
-            <span>{{ record.content }}</span>
+            <span>{{ getCdnDomain() + record.content }}</span>
           </template>
           <template v-else-if="record.type === 'image'">
-            <a-image :width="100" :height="100" :src="record.content" :fallback="failImg" />
+            <a-image :width="100" :height="100" :src="getCdnDomain() + record.content" :fallback="failImg" />
           </template>
           <template v-else>
             <span>{{ record.content }}</span>
           </template>
-        </template>
-        <template v-if="column.dataIndex === 'sort'">
-          <a-space>
-            <a-input-number id="inputNumber" v-model:value="record.sort" :min="0" :max="999" />
-            <a-button size="small" @click="onChangeStatus(record)">
-              <template #icon><SaveTwoTone /></template>
-            </a-button>
-          </a-space>
         </template>
         <template v-if="column.dataIndex === 'enable'">
           <a-switch v-model:checked="record.enable" @change="onChangeStatus(record)" />
@@ -75,6 +67,8 @@ import logo from '@/assets/defaultUser.png'
 import failImg from '@/assets/failImg.png'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
+import { getCdnDomain } from '@/utils/Storage'
+import { throttle } from 'lodash-es'
 
 const state = reactive({
   dataSource: [],
@@ -115,13 +109,6 @@ const columns = [
     align: 'center',
     ellipsis: true,
     dataIndex: 'content'
-  },
-  {
-    title: '显示顺序',
-    key: 'sort',
-    align: 'center',
-    dataIndex: 'sort',
-    width: 200
   },
   {
     title: '是否启用',

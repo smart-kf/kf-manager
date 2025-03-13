@@ -115,6 +115,7 @@ import { IDomEditor } from '@wangeditor/editor'
 import { message as Message } from 'ant-design-vue'
 import { MessageApi } from '@/webapi/index'
 import ls from '@/utils/Storage'
+import { getCdnDomain } from '@/utils/Storage'
 import { baseURL } from '@/utils/util'
 
 const emits = defineEmits(['update:modelValue', 'refesh'])
@@ -154,14 +155,6 @@ const openModal = computed({
     emits('update:modelValue', val)
   }
 })
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (val) {
-      initEditor()
-    }
-  }
-)
 
 const editorRef = shallowRef()
 // 编辑器配置项
@@ -185,6 +178,15 @@ const customPaste = (editor: IDomEditor, event: ClipboardEvent): boolean => {
   event.preventDefault()
   return false
 }
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      initEditor()
+    }
+  }
+)
 
 const state = reactive({
   content: '',
@@ -233,15 +235,18 @@ const initEditor = () => {
     state.activeKey = props.editData.contentType
     if (props.editData.type === 'text') {
       state.activeKey = 'text'
+      // editorRef.value.setHtml(props.editData.content)
     }
     if (props.editData.type === 'video') {
       state.activeKey = 'video'
-      state.videoList = [{ name: '视频', thumbUrl: props.editData.content }]
+      state.videoList = [{ name: '视频', thumbUrl: getCdnDomain() + props.editData.content }]
+      state.videoRelPath = props.editData.content
       // 显示预览视频
     }
     if (props.editData.type === 'image') {
       state.activeKey = 'image'
-      state.fileList = [{ name: '图片', thumbUrl: props.editData.content }]
+      state.fileList = [{ name: '图片', thumbUrl: getCdnDomain() + props.editData.content }]
+      state.imageRelPath = props.editData.content
       // 显示预览视频
     }
   }
@@ -312,6 +317,8 @@ const handleOk = async () => {
   if (showKeywords()) {
     params.keyword = state.keyword
   }
+
+  console.log(params)
   state.loading = true
   let { code, message }: any = await MessageApi.updateWelcome(params)
   state.loading = false
