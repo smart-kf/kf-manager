@@ -55,7 +55,7 @@
     <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo" @quick-reply="onQuickReply"/>
     
     <!-- 视频播放弹窗 -->
-    <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
+    <a-modal title="视频播放" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
       :width="680">
       <video :src="videoUrl" width="640" height="360" autoplay controls>
       </video>

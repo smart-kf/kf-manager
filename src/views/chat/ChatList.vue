@@ -21,33 +21,34 @@
       </div>
 
       <!-- 聊天列表 -->
-      <div v-scroll="handleScroll" class="chat-list">
-        <a-spin v-if="isLoading" size="large" />
-        <a-checkbox-group v-if="!isLoading" v-model:value="batchSendList">
-          <div 
-            v-for="chat in chatsList" 
-            :key="chat.user.uuid" 
-            :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',]" @click="onChangeChat(chat)">
-            <div class="chat-left">
-              <a-checkbox :value="chat.user.uuid" name="guestIds" v-show="batchSendMod"></a-checkbox>
-              <a-badge :count="chat.unreadMsgCnt">
-                <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
-              </a-badge>
-              <div class="chat-info">
-                <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
-                <p class="last-message">{{ chat.lastMessage }}</p>
+      <div v-scroll="handleScroll" class="chat-list" ref="chatListRef">
+        <a-spin :spinning="isLoading" size="large">
+          <a-checkbox-group v-model:value="batchSendList">
+            <div 
+              v-for="chat in chatsList" 
+              :key="chat.user.uuid" 
+              :class="['chat-item',selectChatId===chat.user.uuid?'select-item':'',]" @click="onChangeChat(chat)">
+              <div class="chat-left">
+                <a-checkbox :value="chat.user.uuid" name="guestIds" v-show="batchSendMod"></a-checkbox>
+                <a-badge :count="chat.unreadMsgCnt">
+                  <img :src="mergeCdn(chat.user.avatar)" alt="Avatar" :class="['avatar',chat.user.isOnline ? '':'offline-avatar']" />
+                </a-badge>
+                <div class="chat-info">
+                  <span class="name">{{ chat.user.remarkName || chat.user.nickName }}</span>
+                  <p class="last-message">{{ chat.lastMessage }}</p>
+                </div>
+              </div>
+              <div class="chat-right">
+                <span class="status" :class="{ online: chat.user.isOnline }">
+                  {{ chat.user.topAt > 0 ? '[顶]' : '' }}
+                  {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
+                  {{ chat.user.isOnline ? '在线' : '离线' }}
+                </span>
+                <span class="time">{{ formatTime(chat.user.lastChatAt) }}</span>
               </div>
             </div>
-            <div class="chat-right">
-              <span class="status" :class="{ online: chat.user.isOnline }">
-                {{ chat.user.topAt > 0 ? '[顶]' : '' }}
-                {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
-                {{ chat.user.isOnline ? '在线' : '离线' }}
-              </span>
-              <span class="time">{{ formatTime(chat.user.lastChatAt) }}</span>
-            </div>
-          </div>
-        </a-checkbox-group>
+          </a-checkbox-group>
+        </a-spin>
         <div v-if="chatsList.length===0&&!isLoading">
           <p class="no-data">无数据</p>
         </div>
@@ -56,7 +57,7 @@
   </template>
   
 <script setup>
-import { ref, defineEmits, onMounted, watch, defineProps, toRefs , defineExpose } from 'vue';
+import { ref, defineEmits, onMounted, watch, defineProps, toRefs , defineExpose, nextTick } from 'vue';
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime' 
 import 'dayjs/locale/zh-cn'
@@ -64,7 +65,6 @@ import { ChatApi } from '@/webapi/index'
 import { message } from 'ant-design-vue';
 import { mergeCdn } from '@/utils/util.ts'
 import { throttle } from 'lodash-es'
-import { chatListPost } from '@/webapi/chat';
 
 dayjs.locale('zh-cn') // +
 dayjs.extend(relativeTime)
@@ -278,17 +278,25 @@ const onChangeTab = ({value})=>{
   if(listType.value === 0) {
     showUnReadDot.value = false
   }
+  page.value = 1
   getChatList()
 }
 
+const chatListRef = ref(null)
+let preScrollTop = 0
 const handleScroll = throttle(()=>{
   const idx = chatsList.value.length - 1
+  preScrollTop = chatListRef.value.scrollTop
   getChatList()
 },500)
+
 
 const isLoading = ref(false)
 const getChatList = async ()=>{
     if(searchBy.value.trim() === '' && lastListType.value == listType.value && scrollDone.value){
+      return
+    }
+    if(isLoading.value){
       return
     }
     isLoading.value = true
@@ -314,6 +322,10 @@ const getChatList = async ()=>{
       message.error(res.message || '请求失败，请联系管理员');
     }
     isLoading.value = false
+    // 滚动条位置
+    nextTick(()=>{
+      chatListRef.value.scrollTop = preScrollTop
+    })
 }
 
 // 用户上线
@@ -477,6 +489,9 @@ defineExpose({ onOnline, onOffline , batchSendMessage});
 
     .ant-checkbox-group{
       display: block;
+    }
+    .ant-spin-nested-loading{
+      height: 100%;
     }
 
     .ant-spin-spinning,.no-data{
