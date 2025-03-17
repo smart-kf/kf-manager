@@ -6,6 +6,7 @@
             v-model:value="searchBy"
             placeholder="搜索编号或备注"
             enter-button
+            allow-clear
             @search="onSearch"
         />
         <a-button type="primary" @click="batchSend">{{ batchSendMod ? '取消': '群发' }}</a-button>
@@ -263,7 +264,8 @@ const onChangeChat = (chat)=>{
 
 
 const onSearch = ()=>{
-  chatsList.value = []
+  scrollDone.value = false
+  page.value = 1
   getChatList()
 }
 
@@ -271,7 +273,6 @@ const onChangeTab = ({value})=>{
   if(listType.value === value) return
   // 切换tab
   listType.value = value
-  chatsList.value = []
   // 复选框清空
   batchSendList.value = []
   checked.value = false
@@ -299,6 +300,7 @@ const getChatList = async ()=>{
     if(isLoading.value){
       return
     }
+    chatsList.value = []
     isLoading.value = true
     lastListType.value = listType.value
     const params = {
