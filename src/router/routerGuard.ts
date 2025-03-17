@@ -27,7 +27,7 @@ export const setupBeforeEach = (router: Router) => {
       } else {
         try {
           // 如果有信息，卡密一定存在，头像和昵称可能没有
-          if (userStore.getUserInfo.cardId) {
+          if (userStore.getUserInfo && userStore.getUserInfo.cardId) {
             next() // 继续路由跳转
           } else {
             let res = await SystemApi.getSysConfig({})
