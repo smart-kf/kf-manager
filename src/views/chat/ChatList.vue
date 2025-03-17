@@ -41,7 +41,7 @@
               </div>
               <div class="chat-right">
                 <span class="status" :class="{ online: chat.user.isOnline }">
-                  {{ chat.user.topAt > 0 ? '[顶]' : '' }}
+                  {{ chat.user.topAt > 0 ? '[置顶]' : '' }}
                   {{ chat.user.blockAt > 0 ? '[已拉黑]' : '' }}
                   {{ chat.user.isOnline ? '在线' : '离线' }}
                 </span>
@@ -546,7 +546,7 @@ defineExpose({ onOnline, onOffline , batchSendMessage});
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    border: 2px solid greenyellow;
+    border: 2px solid #7ec051;
     margin-left: 8px;
   }
   .offline-avatar{
@@ -590,7 +590,7 @@ defineExpose({ onOnline, onOffline , batchSendMessage});
   }
   
   .status.online {
-    color: green;
+    color: #7ec051;
   }
   
   .time {
