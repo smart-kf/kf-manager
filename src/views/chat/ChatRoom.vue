@@ -59,30 +59,30 @@
     </a-modal>
 
     <!-- 新消息音频 -->
-    <audio id="audioPlayer" :src="msgVoice" controls style="display: none"></audio>
-    <!-- 上线音频 -->
-    <!-- <audio id="audioPlayer" :src="msgVoice" controls style="display: none;"></audio> -->
+    <audio id="audioPlayer" :src="voiceSrc" controls style="display: none;"></audio>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs, watch, defineEmits, h } from 'vue'
-import WebSocketClient from '@/utils/mySocket.js'
+import { ref, onMounted, nextTick, toRefs, watch , computed } from 'vue';
+import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
-import { message, Spin } from 'ant-design-vue'
+import { message } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
 import { mergeCdn, highlightURLs } from '@/utils/util.ts'
 import ChatUser from './chatUser.vue'
 import MaterialPreview from '@/components/MaterialPreview/index.vue'
 import ls from '@/utils/Storage'
 import msgVoice from '@/assets/newmsg.mp3'
+import onlineVoice from '@/assets/online.mp3'
+import { useUserStore } from '@/store/modules'
 
 const systemConfig = JSON.parse(sessionStorage.getItem('systemConfig'))
 const kfAvatar = `${ls.get('cdnDomain')}${systemConfig.avatarUrl}`
-const voiceFlag = systemConfig.newMessageVoice
+// const voiceFlag = systemConfig.newMessageVoice
 
 const wsHost = ls.get('wsHost')
 const wsFullHost = ls.get('wsFullHost')
@@ -362,14 +362,27 @@ const onQuickReply = (msg) => {
   onSendMessage({ preventDefault: () => {} }, msg.msgType, msg.content)
 }
 
+const userStore = useUserStore()
+const voiceFlag = computed(() => {
+  console.log('消息提示音：',userStore.getUserInfo.newMessageVoice);
+  return userStore.getUserInfo.newMessageVoice
+})
+
 let audio
+const voiceSrc = ref(null)
+const playVoice = (flag)=>{
+  if(!voiceFlag.value) return
+  if(audio) audio.pause();
+  voiceSrc.value = flag ? msgVoice : onlineVoice
+  nextTick(()=>{
+    audio.play()
+  })
+}
+
+
 // 自动滚动到最新消息
 onMounted(() => {
   audio = document.getElementById('audioPlayer')
-
-  // Spin.setDefaultIndicator({
-  //   indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
-  // });
 
   let params = {
     wsHost: wsHost,
@@ -380,11 +393,11 @@ onMounted(() => {
   // 监听消息
   wsClient = new WebSocketClient(params)
 
-  wsClient.onMessage((res) => {
-    console.log('接收到啦：', res)
-    if (voiceFlag) {
-      audio.play()
-    }
+  wsClient.onMessage(res => {
+    console.log('接收到啦：', res);
+    // 播放新消息音频
+    playVoice(true)
+    
 
     // 是否是当前粉丝发的消息
     const guestId = res.guestId
@@ -408,9 +421,13 @@ onMounted(() => {
   })
 
   wsClient.onOnline((res) => {
-    emit('msg:online', res)
-  })
-})
+    // 播放上线音频
+    playVoice(false)
+    emit('msg:online',res)
+  }) 
+
+});
+
 
 const renderMessage = (message) => {
   const messageEl = document.createElement('p')
