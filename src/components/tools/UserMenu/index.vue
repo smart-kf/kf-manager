@@ -34,7 +34,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const userInfo = computed(() => {
-  return userStore.getUserInfo
+  return userStore.getUserInfo || {}
 })
 
 const state = reactive({

@@ -10,7 +10,7 @@
               <div class="qrcode-canvas" id="qrcode">
                 <img :src="qrcode.imageUrl" style="width: 200px" alt="" />
               </div>
-              <div style="color: #7ec051; font-size: 12px">码正常 12-12 11:23:59</div>
+              <!-- <div style="color: #7ec051; font-size: 12px">码正常 12-12 11:23:59</div> -->
             </div>
           </div>
           <div class="desc">

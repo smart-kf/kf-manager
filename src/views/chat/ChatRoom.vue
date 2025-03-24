@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex;flex: 1;">
+  <div style="display: flex; flex: 1">
     <div class="chatroom-contain">
       <!-- 消息来源 -->
       <div v-if="toUser?.user?.nickName" class="info-container">
@@ -18,8 +18,7 @@
 
       <!-- 消息展示区域 -->
       <div v-scroll-to-top="loadHistoryMsg" class="message-display" ref="messageDisplay">
-        <div v-for="(message, index) in messages" :key="index" :id="message.msgId"
-          :class="['message', message.isKf == 1 ? 'right' : '']">
+        <div v-for="(message, index) in messages" :key="index" :id="message.msgId" :class="['message', message.isKf == 1 ? 'right' : '']">
           <div class="avatar-and-name">
             <span class="name">{{ message.isKf === 1 ? '' : message.guestName }}</span>
             <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
@@ -27,8 +26,9 @@
           <div class="message-content">
             <div v-if="message.msgType === 'text'" v-html="renderMessage(message.content)"></div>
             <div v-if="message.msgType === 'video'" class="video-contain">
-              <video :src="mergeCdn(message.content)" class="video-box"></video>
-              <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)" />
+              <MaterialPreview mediaType="video" :url="message.content"></MaterialPreview>
+              <!-- <video :src="mergeCdn(message.content)" class="video-box"></video>
+              <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)" /> -->
             </div>
             <a-image v-if="message.msgType === 'image'" :width="200" :src="mergeCdn(message.content)" class="image-box" />
             <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
@@ -39,52 +39,50 @@
       <!-- 消息输入区域 -->
       <a-spin :spinning="loading">
         <div class="message-input">
-          <div :class="['tools', { 'disable': disableChatBox() }]">
+          <div :class="['tools', { disable: disableChatBox() }]">
             <EmojiSelect @onChange="onEmojiChange"></EmojiSelect>
             <FileImageOutlined @click="selectFile('image')" class="emoji-text" />
             <VideoCameraOutlined @click="selectFile('video')" class="emoji-text" />
           </div>
-          <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false"
-            @pressEnter="onSendMessage" :disabled="disableChatBox()" />
-          <a-button @click="onSendMessage" type="primary" :class="['send-btn', { 'disable': disableChatBox() }]">发送</a-button>
+          <a-textarea v-model:value="newMessage.content" v-focus placeholder="Type your message..." :bordered="false" @pressEnter="onSendMessage" :disabled="disableChatBox()" />
+          <a-button @click="onSendMessage" type="primary" :class="['send-btn', { disable: disableChatBox() }]">发送</a-button>
         </div>
       </a-spin>
     </div>
 
     <!-- 当前用户信息 -->
-    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo" @quick-reply="onQuickReply"/>
-    
+    <ChatUser :key="toUser?.user?.uuid" v-if="toUser?.user?.nickName" :toUser="toUser" @change="onChangeUserInfo" @quick-reply="onQuickReply" />
+
     <!-- 视频播放弹窗 -->
-    <a-modal title="" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false"
-      :width="680">
-      <video :src="videoUrl" width="640" height="360" autoplay controls>
-      </video>
+    <a-modal title="视频播放" v-model:visible="visible" :footer="null" :destroyOnClose="true" :maskClosable="false" :width="680">
+      <video :src="videoUrl" width="640" height="360" autoplay controls></video>
     </a-modal>
 
     <!-- 新消息音频 -->
-    <audio id="audioPlayer" :src="msgVoice" controls style="display: none;"></audio>
-    <!-- 上线音频 -->
-    <!-- <audio id="audioPlayer" :src="msgVoice" controls style="display: none;"></audio> -->
+    <audio id="audioPlayer" :src="voiceSrc" controls style="display: none;"></audio>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, defineProps, toRefs, watch, defineEmits , h } from 'vue';
+import { ref, onMounted, nextTick, toRefs, watch , computed } from 'vue';
 import WebSocketClient from '@/utils/mySocket.js';
 import EmojiSelect from '@/components/EmojiSelect/index.vue'
 import { FileImageOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { ChatApi } from '@/webapi/index'
-import { message, Spin } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 import { throttle } from 'lodash-es'
 import { mergeCdn, highlightURLs } from '@/utils/util.ts'
-import ChatUser from './chatUser.vue' 
+import ChatUser from './chatUser.vue'
+import MaterialPreview from '@/components/MaterialPreview/index.vue'
 import ls from '@/utils/Storage'
 import msgVoice from '@/assets/newmsg.mp3'
+import onlineVoice from '@/assets/online.mp3'
+import { useUserStore } from '@/store/modules'
 
 const systemConfig = JSON.parse(sessionStorage.getItem('systemConfig'))
 const kfAvatar = `${ls.get('cdnDomain')}${systemConfig.avatarUrl}`
-const voiceFlag = systemConfig.newMessageVoice
+// const voiceFlag = systemConfig.newMessageVoice
 
 const wsHost = ls.get('wsHost')
 const wsFullHost = ls.get('wsFullHost')
@@ -97,47 +95,47 @@ const props = defineProps({
     default: () => ({
       user: {},
       lastChatAt: 0,
-      lastMessage: null,
+      lastMessage: null
     })
   },
-  batchSendMode: Boolean,
+  batchSendMode: Boolean
 })
-
 
 const { toUser } = toRefs(props)
 const scrollId = ref(0)
 const allMsgLoaded = ref(false)
 
 const disableChatBox = () => {
-  if(props.batchSendMode) {
-    return false ;
+  if (props.batchSendMode) {
+    return false
   }
-  if(toUser.value?.user?.uuid) {
-    return false ;
+  if (toUser.value?.user?.uuid) {
+    return false
   }
-  return true; 
+  return true
 }
 
-watch(() => props.toUser, () => {
-  if (toUser.value?.user?.uuid) {
-    setTimeout(() => {
-      getChatMsg()
-      getChatUser(toUser.value.user.uuid)
-    }, 0);
+watch(
+  () => props.toUser,
+  () => {
+    if (toUser.value?.user?.uuid) {
+      setTimeout(() => {
+        getChatMsg()
+        getChatUser(toUser.value.user.uuid)
+      }, 0)
+    }
+  },
+  {
+    deep: true,
+    immediate: true
   }
-}, {
-  deep: true,
-  immediate: true
-})
+)
 
 const getChatUser = async (uuid) => {
   const params = { uuid }
   const res = await ChatApi.chatUserGet(uuid)
-  console.log('res:', res);
+  console.log('res:', res)
 }
-
-
-
 
 // ws实例
 let wsClient
@@ -153,20 +151,12 @@ let wsClient
 //     "msgTime": 12345654324, //时间戳
 //     "kfId": "客服id",
 //     "content": "内容：text=文本、image、video = 地址",
-//     "isKf": 1 || 2, //   1=客服消息，2=客户消息 
+//     "isKf": 1 || 2, //   1=客服消息，2=客户消息
 //   }
 // }
 
 // 消息对象数组
-const messages = ref([
-  // {
-  //   msgType: 'text', image || video
-  //   content: '',
-  //   msgTime: '', // 时间戳
-  //   guestAvatar: '',  //头像
-  //   time: '10:15 AM',
-  // },
-]);
+const messages = ref([])
 
 // 输入框中的新消息
 const newMessage = ref({
@@ -186,58 +176,58 @@ const onBatchSendSuccess = () => {
   newMessage.value.content = ''
 }
 
-defineExpose({ onBatchSendSuccess });
+defineExpose({ onBatchSendSuccess })
 
 // 消息展示区域引用
-const messageDisplay = ref(null);
-
+const messageDisplay = ref(null)
 
 // 状态管理
-let isCoolingDown = ref(false); // 是否在冷却期
-let lastSendTime = ref(0);     // 最后发送时间戳
+let isCoolingDown = ref(false) // 是否在冷却期
+let lastSendTime = ref(0) // 最后发送时间戳
 
-
-const onSendMessage = (event,msgType,msgText) => {
+const onSendMessage = (event, msgType, msgText) => {
   if (isCoolingDown.value) {
-    message.error('消息发送过于频繁，请稍后再试');
-    return;
+    message.error('消息发送过于频繁，请稍后再试')
+    return
   }
   if (Date.now() - lastSendTime < 500) {
-    isCoolingDown.value = true;
+    isCoolingDown.value = true
   }
-  throttledSend(event,msgType,msgText);
+  throttledSend(event, msgType, msgText)
 }
 
-const throttledSend = throttle((event,msgType,msgText) => {
-  isCoolingDown.value = false;
-  sendMessage(event,msgType,msgText)
-  lastSendTime.value = Date.now();
-},500, { 
-    leading: true,  // 立即执行第一次点击
+const throttledSend = throttle(
+  (event, msgType, msgText) => {
+    isCoolingDown.value = false
+    sendMessage(event, msgType, msgText)
+    lastSendTime.value = Date.now()
+  },
+  500,
+  {
+    leading: true, // 立即执行第一次点击
     trailing: false // 不执行最后一次点击的延迟回调
-})
-
+  }
+)
 
 // 回车，发送消息
-const sendMessage = (event, msgType, msgText ) => {
+const sendMessage = (event, msgType, msgText) => {
   // 阻止默认的换行行为
-  event.preventDefault();
+  event.preventDefault()
 
-    // 验证消息长度: 
-  if(newMessage.value.content.length > 500){
+  // 验证消息长度:
+  if (newMessage.value.content.length > 500) {
     message.error('消息长度不能超过500个字符')
-    return 
+    return
   }
 
-
-  // 群发模式. 
-  if(props.batchSendMode) {
-    // emit message 出去. 
+  // 群发模式.
+  if (props.batchSendMode) {
+    // emit message 出去.
     emit('batch-send-message', {
       msgType: msgType ? msgType : 'text',
       content: newMessage.value.content.trim()
     })
-    return;
+    return
   }
 
   if (!toUser.value?.user?.uuid) {
@@ -245,83 +235,79 @@ const sendMessage = (event, msgType, msgText ) => {
     return
   }
 
-
   newMessage.value.guestId = toUser.value?.user?.uuid
-  const messageText = msgText ? msgText : newMessage.value.content.trim();
+  const messageText = msgText ? msgText : newMessage.value.content.trim()
   if (messageText) {
     newMessage.value.msgType = msgType ? msgType : 'text'
     newMessage.value.content = messageText
     newMessage.value.msgTime = dayjs().unix()
-    messages.value.push(JSON.parse(JSON.stringify(newMessage.value)));
+    messages.value.push(JSON.parse(JSON.stringify(newMessage.value)))
     // 发送给服务器
     wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
     // 同步list中消息内容及时间
-    emit('newMessage',JSON.parse(JSON.stringify(newMessage.value)))
+    emit('newMessage', JSON.parse(JSON.stringify(newMessage.value)))
     // 清空聊天
-    newMessage.value.content = '';
+    newMessage.value.content = ''
 
     // 滚动到底部
     nextTick(() => {
-      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-    });
-  }else{
+      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight
+    })
+  } else {
     message.error('请勿发送空白消息')
   }
 
   nextTick(() => {
-      messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-  });
-};
+    messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight
+  })
+}
 
 // 切换表情包选择框
 const onEmojiChange = (emoji) => {
-  newMessage.value.content += emoji.i;
-};
-
-
+  newMessage.value.content += emoji.i
+}
 
 // 选择文件
 const selectFile = (type) => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = type === 'image' ? 'image/*' : 'video/*';
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = type === 'image' ? 'image/*' : 'video/*'
   input.onchange = async (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files[0]
     if (file) {
-      console.log('file:', file);
+      console.log('file:', file)
 
       //上传至服务器，得到url后展示在消息框中
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('fileType', type);
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('fileType', type)
       loading.value = true
       const res = await ChatApi.fileUpload(formData)
-      loading.value = false 
+      loading.value = false
       if (res && res.code === 200 && res.data) {
         const { cdnHost, path } = res.data
-        onSendMessage({preventDefault:()=>{}},type,`${path}`)
+        onSendMessage({ preventDefault: () => {} }, type, `${path}`)
       }
       // 滚动到底部
       nextTick(() => {
-        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-      });
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight
+      })
     }
-  };
-  input.click();
-};
+  }
+  input.click()
+}
 
 // 上一次请求的内容高度
 let preScrollHeight = 0
 let preScrollTop = 0
 const getChatMsg = async () => {
-
-  if(toUser.value?.user?.uuid === ''){
-    return 
+  if (toUser.value?.user?.uuid === '') {
+    return
   }
 
-  // 当加载了所有消息，不再发送请求，最老的消息都加载了就没得了. 
-  if(allMsgLoaded.value) {
-    return 
+  // 当加载了所有消息，不再发送请求，最老的消息都加载了就没得了.
+  if (allMsgLoaded.value) {
+    return
   }
   preScrollHeight = messageDisplay.value.scrollHeight
   preScrollTop = messageDisplay.value.scrollTop
@@ -331,30 +317,28 @@ const getChatMsg = async () => {
     guestId: toUser.value.user.uuid
   }
   const res = await ChatApi.chatMsgPost(params)
-  console.log('res:', res);
+  console.log('res:', res)
   if (res && res.code === 200) {
-    if(res.data && res.data.messages.length == 0) {
-      allMsgLoaded.value = true 
+    if (res.data && res.data.messages.length == 0) {
+      allMsgLoaded.value = true
     }
     // page1: [m21 m22 m23 m24 ... m40]
     // page2: [m1 m2 m3 ... m20]
-    if(res.data && res.data.messages.length >0 ) {
+    if (res.data && res.data.messages.length > 0) {
       scrollId.value = res.data.messages[0].msgTime
     }
     messages.value = [...res.data?.messages, ...messages.value]
-    
-    nextTick(()=>{
-      if(preScrollHeight===0){
+
+    nextTick(() => {
+      if (preScrollHeight === 0) {
         messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight - messageDisplay.value.clientHeight
-      }else{
-        messageDisplay.value.scrollTop = (messageDisplay.value.scrollHeight-preScrollHeight)+preScrollTop
+      } else {
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight - preScrollHeight + preScrollTop
       }
     })
-
   } else {
-    message.error(res.message || '请求失败，请联系管理员');
+    message.error(res.message || '请求失败，请联系管理员')
   }
-
 }
 
 const loadHistoryMsg = throttle(() => {
@@ -364,69 +348,81 @@ const loadHistoryMsg = throttle(() => {
 const visible = ref(false)
 const videoUrl = ref('')
 const playVideo = (url) => {
-  videoUrl.value = url
+  videoUrl.value = mergeCdn(url)
   visible.value = true
 }
 
-const emit = defineEmits(['newMessage','changeUserInfo','msg:online','msg:offline'])
+const emit = defineEmits(['newMessage', 'changeUserInfo', 'msg:online', 'msg:offline'])
 
-const onChangeUserInfo = (updateInfo)=>{
-  emit('changeUserInfo',updateInfo)
+const onChangeUserInfo = (updateInfo) => {
+  emit('changeUserInfo', updateInfo)
 }
 
 const onQuickReply = (msg) => {
-  onSendMessage({preventDefault:()=>{}},msg.msgType,msg.content)
+  onSendMessage({ preventDefault: () => {} }, msg.msgType, msg.content)
 }
 
+const userStore = useUserStore()
+const voiceFlag = computed(() => {
+  console.log('消息提示音：',userStore.getUserInfo.newMessageVoice);
+  return userStore.getUserInfo.newMessageVoice
+})
+
 let audio
+const voiceSrc = ref(null)
+const playVoice = (flag)=>{
+  if(!voiceFlag.value) return
+  if(audio) audio.pause();
+  voiceSrc.value = flag ? msgVoice : onlineVoice
+  nextTick(()=>{
+    audio.play()
+  })
+}
+
+
 // 自动滚动到最新消息
 onMounted(() => {
-
   audio = document.getElementById('audioPlayer')
-
-  // Spin.setDefaultIndicator({
-  //   indicator: h('i', { class: 'anticon anticon-loading anticon-spin ant-spin-dot' }),
-  // });
 
   let params = {
     wsHost: wsHost,
     wsFullHost: wsFullHost,
-    token: token,
+    token: token
   }
 
   // 监听消息
-  wsClient = new WebSocketClient(params);
+  wsClient = new WebSocketClient(params)
 
   wsClient.onMessage(res => {
     console.log('接收到啦：', res);
-    if(voiceFlag){
-      audio.play()
-    }
+    // 播放新消息音频
+    playVoice(true)
+    
 
     // 是否是当前粉丝发的消息
     const guestId = res.guestId
-    if(toUser.value?.user?.uuid === guestId){
+    if (toUser.value?.user?.uuid === guestId) {
       // 将消息展示在聊天框中
-      messages.value.push(JSON.parse(JSON.stringify(res)));
+      messages.value.push(JSON.parse(JSON.stringify(res)))
       // 发送已读消息
       newMessage.value.msgType = 'read'
       newMessage.value.guestId = toUser.value?.user?.uuid
       wsClient.sendMessage(JSON.parse(JSON.stringify(newMessage.value)))
 
-
       nextTick(() => {
-          messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight;
-      });
+        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight
+      })
     }
-    emit('newMessage',res)
+    emit('newMessage', res)
   })
 
-
   wsClient.onOffline((res) => {
-    emit('msg:offline',res)
+    emit('msg:offline', res)
   })
 
   wsClient.onOnline((res) => {
+    // 播放上线音频
+    playVoice(false)
     emit('msg:online',res)
   }) 
 
@@ -434,13 +430,11 @@ onMounted(() => {
 
 
 const renderMessage = (message) => {
-  const messageEl = document.createElement('p');
+  const messageEl = document.createElement('p')
   // 处理换行和 URL
-  let html = highlightURLs(message);
-  return  html
+  let html = highlightURLs(message)
+  return html
 }
-
-
 </script>
 
 <style lang="less" scoped>
@@ -454,7 +448,7 @@ const renderMessage = (message) => {
   overflow: hidden;
 }
 
-.disable{
+.disable {
   cursor: not-allowed;
   pointer-events: none; /* 禁用所有鼠标事件 */
   filter: grayscale(80%); /* 灰化效果 */
@@ -535,13 +529,11 @@ const renderMessage = (message) => {
     }
   }
 
-
   .image-box {
     width: 200px;
     height: 200px;
     object-fit: cover;
   }
-
 }
 
 .message-content .time {
@@ -557,7 +549,7 @@ const renderMessage = (message) => {
 }
 
 .message.right .message-content {
-  background: #9EEA6A;
+  background: #9eea6a;
 }
 
 /* 消息输入区域 */
@@ -569,7 +561,7 @@ const renderMessage = (message) => {
   border-top: 1px solid #ddd;
   background: #fff;
   min-height: 200px;
-  border-right:1px solid #ddd;
+  border-right: 1px solid #ddd;
 }
 
 .message-input .tools {
@@ -592,7 +584,7 @@ const renderMessage = (message) => {
   cursor: pointer;
 }
 
-.message-input .send-btn{
+.message-input .send-btn {
   width: 80px;
   position: absolute;
   right: 10px;
@@ -606,7 +598,6 @@ const renderMessage = (message) => {
   font-size: 16px;
   cursor: pointer;
 }
-
 
 .info-container {
   display: flex;
@@ -634,8 +625,6 @@ const renderMessage = (message) => {
     color: #555;
   }
 }
-
-
 
 .system-type,
 .system-version,
