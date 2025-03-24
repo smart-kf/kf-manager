@@ -1,32 +1,52 @@
 <template>
   <div class="user-wrapper">
-    <a-popover placement="rightTop">
+    <a-popover placement="rightTop" v-model:visible="state.visible" trigger="click" overlayClassName="custom-popover">
       <template #content>
-        <a-space direction="vertical">
+        <a-space direction="vertical" style="margin: 10px 15px 10px 0px">
           <div>
-            <span>昵称：{{ userInfo.nickname }}</span>
+            <span class="label">昵称</span><span class="nickName">{{ userInfo.nickname }}</span>
           </div>
           <div>
-            <span>到期时间：{{ state.cardExpire }}</span>
+            <span class="label">到期时间</span> <span class="expireTime">{{ state.cardExpire }}</span>
           </div>
-          <a-button type="link" @click="loginOut">退出登录</a-button>
+          <div style="height: 20px"></div>
+          <div style="text-align: end">
+            <a-space :size="15">
+              <span class="table-link-action" @click="changePwd"><EditOutlined></EditOutlined><span>修改密码</span></span>
+              <span class="table-link-action" @click="loginOut"><LoginOutlined></LoginOutlined><span>退出登录</span></span>
+            </a-space>
+          </div>
         </a-space>
       </template>
       <a-avatar :size="55" :src="getAavatarUrl(userInfo.avatarUrl)"> </a-avatar>
     </a-popover>
     <div class="point"></div>
+
+    <a-modal v-model:visible="state.showPwdDia" title="修改密码" @ok="onSave">
+      <a-form :model="formData" ref="formRef" layout="vertical" :rules="rules">
+        <a-form-item label="旧密码" name="oldPassWord">
+          <a-input-password placeholder="请输入旧密码，否则请忽略" allowClear :maxlength="50" v-model:value="formData.oldPassword" />
+        </a-form-item>
+        <a-form-item label="新密码" name="newPassword">
+          <a-input-password placeholder="请输入新密码" :maxlength="50" allowClear v-model:value="formData.newPassword" />
+        </a-form-item>
+        <a-form-item label="确认密码" name="newPassWordCheck">
+          <a-input-password placeholder="请再次输入新密码" :maxlength="50" allowClear v-model:value="formData.newPassWordCheck" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { Modal } from 'ant-design-vue'
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, UserOutlined, EditOutlined, LoginOutlined } from '@ant-design/icons-vue'
 import { useUserStore } from '@/store/modules'
 import { useRouter } from 'vue-router'
 import { UserApi } from '@/webapi/index'
 import { message as Message } from 'ant-design-vue'
 import ls from '@/utils/Storage'
-import { onMounted, reactive, computed } from 'vue'
+import { onMounted, reactive, computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import defaultUser from '@/assets/defaultUser.png'
 
@@ -40,8 +60,27 @@ const userInfo = computed(() => {
 const state = reactive({
   nickname: '', // 昵称
   avatarUrl: '', // 头像
-  cardExpire: '' //到期时间
+  cardExpire: '', //到期时间
+  showPwdDia: false,
+  visible: false
 })
+
+const formRef: any = ref('')
+const formData = reactive({
+  oldPassword: '',
+  newPassword: '',
+  newPassWordCheck: ''
+})
+
+const rules = {
+  newPassword: [{ required: true, message: '请输入', trigger: 'blur' }],
+  newPassWordCheck: [{ required: true, message: '请输入', trigger: 'blur' }]
+}
+
+const changePwd = () => {
+  state.visible = false
+  state.showPwdDia = true
+}
 // 登出
 const loginOut = () => {
   Modal.confirm({
@@ -68,6 +107,24 @@ const getAavatarUrl = (url = '') => {
   return url ? ls.get('cdnDomain') + url : defaultUser
 }
 
+const onSave = () => {
+  formRef.value
+    .validate()
+    .then(() => {
+      if (formData.newPassword !== formData.newPassWordCheck) {
+        Message.error('新密码和确认密码不一致，请重新输入')
+        return
+      }
+      if (formData.newPassword === formData.oldPassword) {
+        Message.error('新密码和旧密码相同，请重新输入')
+        return
+      }
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
 onMounted(() => {
   let cardExpire = ls.get('cardExpire')
   if (cardExpire) {
@@ -89,6 +146,20 @@ onMounted(() => {
 
 .ant-avatar {
   cursor: pointer;
+  background: #fff !important;
+}
+.label {
+  display: inline-block;
+  width: 70px;
+  color: #999;
+}
+.nickName {
+  font-size: 16px;
+  font-weight: bold;
+  color: #87d068;
+}
+.expireTime {
+  color: #f50;
 }
 
 .point {
@@ -107,5 +178,11 @@ onMounted(() => {
   background-color: #52c41a;
   border-radius: 50%;
   border: 1px solid #fff;
+}
+
+.custom-popover {
+  .ant-popover-inner {
+    border-radius: 15px;
+  }
 }
 </style>

@@ -6,9 +6,6 @@
         <div class="base-info">
           <a-form name="basic" ref="formRef" :model="formData" autocomplete="off" :label-col="{ span: 4 }" :rules="rules" labelAlign="right">
             <a-form-item label="我的卡密" name="cardId"> {{ formData.cardId }} <a-button type="primary" @click="copyQrcode" size="small"> 复制 </a-button> </a-form-item>
-            <!-- <a-form-item label="到期时间" name="endTime">
-          <span class="red-tip">{{ formData.endTime }}</span>
-        </a-form-item> -->
             <a-form-item label="客服昵称" name="nickname" require>
               <a-input v-model:value="formData.nickname" placeholder="请输入客服昵称" maxlenght="20" style="width: 300px" />
             </a-form-item>

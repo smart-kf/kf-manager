@@ -25,7 +25,7 @@
         </div>
         <div style="padding: 16px 0">
           <a-button type="primary" class="green-btn" :icon="h(PlusOutlined)" @click="onBuyDomain">购买独立域名</a-button>
-          <a-button type="primary" class="blue-btn" style="margin-left: 8px;" @click="onDomainOrderListClick">查询域名订单</a-button>
+          <a-button type="primary" class="blue-btn" style="margin-left: 8px" @click="onViewOrder">查询域名订单</a-button>
         </div>
         <div>
           <a-table
@@ -78,8 +78,8 @@
 
     <!-- 购买域名对表单，需要填写购买的usdt 地址 -->
     <a-modal v-model:visible="state.domainVisible" title="购买独立域名" @ok="onBuyDomainOK" @cancel="onCancelDomain">
-      <a-form :model="domainOrderRef" ref="domainOrderRef" layout="vertical" :rules="rules">
-        <a-form-item label="请输入您的支付订单的USDT地址, 仅支持 TRC20 协议" name="usdtAddress">
+      <a-form :model="domainOrderForm" ref="domainOrderRef" layout="vertical" :rules="rules">
+        <a-form-item label="请输入您的支付订单的USDT地址, 仅支持 TRC20 协议" name="payAddress" required>
           <a-input v-model:value="domainOrderForm.payAddress" />
         </a-form-item>
       </a-form>
@@ -94,6 +94,8 @@ import logo from '@/assets/defaultUser.png'
 import QRCode from 'qrcode'
 import { message as Message, Modal } from 'ant-design-vue'
 import { QrcodeApi } from '@/webapi/index'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const state = reactive({
   dataSource: [],
@@ -101,8 +103,8 @@ const state = reactive({
   tableLoading: false,
   loading: false,
   selectItem: {} as any, // 被操作的项
-  selectedRowKeys: [], 
-  domainVisible: false, 
+  selectedRowKeys: [],
+  domainVisible: false
 })
 const qrcode = reactive({
   status: 'active',
@@ -267,27 +269,32 @@ const changeQrcode = (reocrd, actionType = '') => {
   })
 }
 
-const domainOrderRef = ref('')
+const domainOrderRef: any = ref('')
 const domainOrderForm = reactive({
   payAddress: ''
 })
 
-const rules: Record<string, Rule[]> = {
+const rules = {
   payAddress: [
-  { required: true, message: '请输入支付地址', trigger: 'change' },
-  { pattern: /^T[a-zA-Z0-9]{33}$/, message: '请输入正确的TRC20地址', trigger: 'change' }
-  ],
-};
+    { required: true, message: '请输入支付地址', trigger: 'blur' },
+    { pattern: /^T[a-zA-Z0-9]{33}$/, message: '请输入正确的TRC20地址', trigger: 'blur' }
+  ]
+}
 
+// 打开弹窗
 const onBuyDomain = () => {
-  state.domainVisible = true 
+  domainOrderRef.value && domainOrderRef.value.resetFields()
+  state.domainVisible = true
+}
+const onViewOrder = () => {
+  router.push('/qrCode/order')
 }
 
 const onBuyDomainOK = () => {
   domainOrderRef.value
     .validate()
     .then(() => {
-      QrcodeApi.createDomainOrder({payAddress: domainOrderForm.payAddress}).then((res) => {
+      QrcodeApi.createDomainOrder({ payAddress: domainOrderForm.payAddress }).then((res: any) => {
         if (res.code === 200) {
           Message.success('订单创建成功，即将跳转支付')
           state.domainVisible = false
@@ -295,7 +302,7 @@ const onBuyDomainOK = () => {
           console.log(res)
           setTimeout(() => {
             window.open(res.data.payUrl)
-          }, 1500);
+          }, 1500)
         } else {
           Message.error(res.message || '购买失败')
         }
