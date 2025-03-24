@@ -13,3 +13,15 @@ export const getQrcodeOff = (data: any) => {
 export const getQrcodeSwitch = (data: any) => {
   return baseService.post(`api/kf-be/qrcode/switch`, data)
 }
+
+export const getDomainPrice = () => {
+  return baseService.get(`api/kf-be/qrcode/domain-price`)
+}
+
+export const createDomainOrder = (data:any) => {
+  return baseService.post(`api/kf-be/qrcode/create-domain-order`, data)
+}
+
+export const domainOrderList = (data:any) => {
+  return baseService.get(`api/kf-be/qrcode/domain-order-list`, data)
+}

@@ -24,7 +24,8 @@
           </div>
         </div>
         <div style="padding: 16px 0">
-          <a-button type="primary" class="green-btn" :icon="h(PlusOutlined)">购买独立域名</a-button>
+          <a-button type="primary" class="green-btn" :icon="h(PlusOutlined)" @click="onBuyDomain">购买独立域名</a-button>
+          <a-button type="primary" class="blue-btn" style="margin-left: 8px;" @click="onDomainOrderListClick">查询域名订单</a-button>
         </div>
         <div>
           <a-table
@@ -74,6 +75,15 @@
         </div>
       </div>
     </a-spin>
+
+    <!-- 购买域名对表单，需要填写购买的usdt 地址 -->
+    <a-modal v-model:visible="state.domainVisible" title="购买独立域名" @ok="onBuyDomainOK" @cancel="onCancelDomain">
+      <a-form :model="domainOrderRef" ref="domainOrderRef" layout="vertical" :rules="rules">
+        <a-form-item label="请输入您的支付订单的USDT地址, 仅支持 TRC20 协议" name="usdtAddress">
+          <a-input v-model:value="domainOrderForm.payAddress" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -91,7 +101,8 @@ const state = reactive({
   tableLoading: false,
   loading: false,
   selectItem: {} as any, // 被操作的项
-  selectedRowKeys: []
+  selectedRowKeys: [], 
+  domainVisible: false, 
 })
 const qrcode = reactive({
   status: 'active',
@@ -254,6 +265,50 @@ const changeQrcode = (reocrd, actionType = '') => {
     },
     onCancel() {}
   })
+}
+
+const domainOrderRef = ref('')
+const domainOrderForm = reactive({
+  payAddress: ''
+})
+
+const rules: Record<string, Rule[]> = {
+  payAddress: [
+  { required: true, message: '请输入支付地址', trigger: 'change' },
+  { pattern: /^T[a-zA-Z0-9]{33}$/, message: '请输入正确的TRC20地址', trigger: 'change' }
+  ],
+};
+
+const onBuyDomain = () => {
+  state.domainVisible = true 
+}
+
+const onBuyDomainOK = () => {
+  domainOrderRef.value
+    .validate()
+    .then(() => {
+      QrcodeApi.createDomainOrder({payAddress: domainOrderForm.payAddress}).then((res) => {
+        if (res.code === 200) {
+          Message.success('订单创建成功，即将跳转支付')
+          state.domainVisible = false
+          domainOrderForm.payAddress = ''
+          console.log(res)
+          setTimeout(() => {
+            window.open(res.data.payUrl)
+          }, 1500);
+        } else {
+          Message.error(res.message || '购买失败')
+        }
+      })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+const onCancelDomain = () => {
+  state.domainVisible = false
+  domainOrderForm.payAddress = ''
 }
 
 onMounted(() => {

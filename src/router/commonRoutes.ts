@@ -19,7 +19,13 @@ export default [
         path: '/qrCode',
         name: 'qrCode',
         meta: { title: '二维码', icon: 'icon-erweima', keepAlive: false },
-        component: () => import('@/views/qrCode/index.vue')
+        component: () => import('@/views/qrCode/index.vue'),
+      },
+      {
+        path: '/qrCode/order',
+        name: 'order',
+        component: () => import(/* webpackChunkName: "user" */ '@/views/qrCode/order.vue'),
+        meta: { title: '域名订单', icon: 'icon-erweima', keepAlive: false },
       },
       {
         path: '/chat',
