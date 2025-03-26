@@ -17,24 +17,48 @@
       </div>
 
       <!-- 消息展示区域 -->
-      <div v-scroll-to-top="loadHistoryMsg" class="message-display" ref="messageDisplay">
-        <div v-for="(message, index) in messages" :key="index" :id="message.msgId" :class="['message', message.isKf == 1 ? 'right' : '']">
-          <div class="avatar-and-name">
-            <span class="name">{{ message.isKf === 1 ? '' : message.guestName }}</span>
-            <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
-          </div>
-          <div class="message-content">
-            <div v-if="message.msgType === 'text'" v-html="renderMessage(message.content)"></div>
-            <div v-if="message.msgType === 'video'" class="video-contain">
-              <MaterialPreview mediaType="video" :url="message.content"></MaterialPreview>
-              <!-- <video :src="mergeCdn(message.content)" class="video-box"></video>
-              <PlayCircleOutlined class="play-icon" @click="playVideo(message.content)" /> -->
+      <div class="message-display" ref="messageDisplay" @scroll="loadHistoryMsg">
+        <div class="message-list" :style="{height: totalHeight+'px'}">
+          <div v-for="message in visibleMessages" :key="message.msgId" :id="message.msgId" 
+            :class="['message', message.isKf == 1 ? 'right' : '']"
+            :style="{transform:`translateX(0px) translateY(${itemOffset[message.msgId]}px)`}">
+
+            <!--  -->
+            <div class="avatar-and-name">
+              <span class="name">{{ message.isKf === 1 ? '' : message.guestName }}</span>
+              <img :src="message.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
             </div>
-            <a-image v-if="message.msgType === 'image'" :width="200" :src="mergeCdn(message.content)" class="image-box" />
-            <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
+            <div class="message-content">
+              <div v-if="message.msgType === 'text'" v-html="renderMessage(message.content)" class="text-content"></div>
+              <div v-if="message.msgType === 'video'" class="video-contain">
+                <MaterialPreview mediaType="video" :url="message.content"></MaterialPreview>
+              </div>
+              <a-image v-if="message.msgType === 'image'" :width="200" :src="mergeCdn(message.content)" class="image-box" />
+              <span class="time">{{ dayjs(message.msgTime).format('HH:mm:ss') }}</span>
+            </div>
+          </div>
+          <div v-for="hiddenMessage in hiddenMessages"
+            :msgType="hiddenMessage.msgType"
+            :key="hiddenMessage.msgId" 
+            :id="`hidden-msg-${hiddenMessage.msgId}`" 
+            :class="['message', hiddenMessage.isKf == 1 ? 'right' : '']" 
+            style="visibility: hidden;position: absolute; top: -9999px;">
+            <div class="avatar-and-name">
+              <span class="name">{{ hiddenMessage.isKf === 1 ? '' : hiddenMessage.guestName }}</span>
+              <img :src="hiddenMessage.isKf === 1 ? kfAvatar : mergeCdn(toUser.user.avatar)" alt="Avatar" />
+            </div>
+            <div class="message-content">
+              <div v-if="hiddenMessage.msgType === 'text'" v-html="renderMessage(hiddenMessage.content)" class="text-content"></div>
+              <div v-if="hiddenMessage.msgType === 'video'" class="video-contain">
+                <MaterialPreview mediaType="video" :url="hiddenMessage.content"></MaterialPreview>
+              </div>
+              <a-image v-if="hiddenMessage.msgType === 'image'" :width="200" :src="mergeCdn(hiddenMessage.content)" class="image-box" />
+              <span class="time">{{ dayjs(hiddenMessage.msgTime).format('HH:mm:ss') }}</span>
+            </div>
           </div>
         </div>
       </div>
+      
 
       <!-- 消息输入区域 -->
       <a-spin :spinning="loading">
@@ -157,6 +181,8 @@ let wsClient
 
 // 消息对象数组
 const messages = ref([])
+// 可见消息列表
+const visibleMessages = ref([])
 
 // 输入框中的新消息
 const newMessage = ref({
@@ -297,9 +323,51 @@ const selectFile = (type) => {
   input.click()
 }
 
+// 获取内容高度
+const itemHeights = ref({})
+const itemOffset = ref({})
+const hiddenMessages = ref([])
+
+const getListHeight = () => {
+  return new Promise(function (res,rej) {
+    if (messages.value.length === 0) {
+      res(0)
+      return
+    };
+
+    let totalHeight = 0
+
+    nextTick(() => {
+      hiddenMessages.value.forEach((item, index) => {
+        const hiddenEl = document.getElementById(`hidden-msg-${item.msgId}`);
+        if (hiddenEl) {
+          const msgType = hiddenEl.getAttribute('msgType')
+          let itemHeight = 103.5 // 视频
+          if(msgType === 'text'){
+            itemHeight = hiddenEl.offsetHeight
+          }else if(msgType === 'image'){
+            itemHeight = hiddenEl.offsetHeight
+          }
+
+          itemHeights.value[item.msgId] = itemHeight;
+          totalHeight += itemHeight;
+          itemOffset.value[item.msgId] = totalHeight - itemHeight;
+        }
+      });
+      res(totalHeight)
+    });
+  })
+  
+};
+
 // 上一次请求的内容高度
 let preScrollHeight = 0
 let preScrollTop = 0
+let totalHeight = 0
+const pageSize = 20
+const preCount = 20
+const afterCount = 20
+
 const getChatMsg = async () => {
   if (toUser.value?.user?.uuid === '') {
     return
@@ -309,10 +377,13 @@ const getChatMsg = async () => {
   if (allMsgLoaded.value) {
     return
   }
-  preScrollHeight = messageDisplay.value.scrollHeight
-  preScrollTop = messageDisplay.value.scrollTop
+  preScrollHeight = await getListHeight() 
+  console.log('preScrollHeight:',preScrollHeight);
+  
+  // preScrollHeight = messageDisplay.value.scrollHeight
+  // preScrollTop = messageDisplay.value.scrollTop
   const params = {
-    pageSize: 20,
+    pageSize,
     lastMsgTime: scrollId.value,
     guestId: toUser.value.user.uuid
   }
@@ -328,13 +399,18 @@ const getChatMsg = async () => {
       scrollId.value = res.data.messages[0].msgTime
     }
     messages.value = [...res.data?.messages, ...messages.value]
+    hiddenMessages.value = [...messages.value]; // 复制所有数据
+    // 仅一页数据时，全部展示
+    if(messages.value.length === res.data?.messages.length){
+        visibleMessages.value = messages.value
+    }
+
+    totalHeight = await getListHeight()
+    // console.log('totalHeight:',totalHeight);
 
     nextTick(() => {
-      if (preScrollHeight === 0) {
-        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight - messageDisplay.value.clientHeight
-      } else {
-        messageDisplay.value.scrollTop = messageDisplay.value.scrollHeight - preScrollHeight + preScrollTop
-      }
+      // 滚动条定位
+      messageDisplay.value.scrollTop = totalHeight - preScrollHeight
     })
   } else {
     message.error(res.message || '请求失败，请联系管理员')
@@ -342,8 +418,34 @@ const getChatMsg = async () => {
 }
 
 const loadHistoryMsg = throttle(() => {
-  getChatMsg()
+  const scrollTop = messageDisplay.value.scrollTop
+  // console.log('scrollTop:',scrollTop);
+  
+  if(scrollTop <= 0){
+    getChatMsg()
+  }
+  // 根据scrollTop判断当前应该加载哪些数据
+  handleVisibleList(scrollTop)
 }, 500)
+
+const handleVisibleList = (screenTop)=>{
+  const idx = getStartIndex(screenTop)
+  let startIndex = idx - preCount <= 0 ? 0 : idx - preCount
+  let endIndex = idx + afterCount >= (messages.value.length - 1) ? (messages.value.length - 1) : idx + afterCount
+  // console.log(idx,startIndex,endIndex);
+  visibleMessages.value = messages.value.slice(startIndex, endIndex+1)
+}
+
+const getStartIndex = (screenTop)=>{
+  let offsetHeight = 0
+  return messages.value.findIndex((item,idx)=>{
+    const itemHeight = itemHeights.value[item.msgId]
+    offsetHeight += itemHeight
+    if(offsetHeight >= screenTop){
+      return true
+    }
+  })
+}
 
 const visible = ref(false)
 const videoUrl = ref('')
@@ -426,6 +528,8 @@ onMounted(() => {
     emit('msg:online',res)
   }) 
 
+  
+
 });
 
 
@@ -465,12 +569,18 @@ const renderMessage = (message) => {
 /* 消息展示区域 */
 .message-display {
   flex: 1;
-  padding: 20px;
+  padding: 0 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  // gap: 10px;
   background-color: #f9f9f9;
+  position: relative;
+
+  .message-list{
+    width: 100%;
+    position: relative;
+  }
 }
 
 .message {
@@ -478,6 +588,7 @@ const renderMessage = (message) => {
   align-items: flex-start;
   gap: 10px;
   max-width: 80%;
+  position: absolute;
 }
 
 .message .avatar-and-name {
@@ -504,7 +615,8 @@ const renderMessage = (message) => {
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-  p {
+  margin-bottom: 10px;
+  .text-content {
     margin-bottom: 0;
     overflow-wrap: anywhere;
   }
@@ -544,7 +656,8 @@ const renderMessage = (message) => {
 }
 
 .message.right {
-  margin-left: auto;
+  // margin-left: auto;
+  right: 0;
   flex-direction: row-reverse;
 }
 
