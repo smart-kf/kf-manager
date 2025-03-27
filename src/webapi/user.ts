@@ -8,3 +8,8 @@ export const userLogin = (data: any) => {
 export const loginOut = (data: any) => {
   return baseService.post(`api/kf-be/logout`, data)
 }
+
+// 修改密码
+export const updatePassword = (data: any) => {
+  return baseService.post(`api/kf-be/change-password`, data)
+}

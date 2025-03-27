@@ -9,10 +9,11 @@
         <a-tab-pane key="login" tab="卡密登录">
           <a-form id="formLogin" ref="loginFormRef" :model="formData" :rules="loginRules">
             <a-form-item name="cardID">
-              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.cardID" />
+              <a-input type="text" placeholder="请输入登录卡密" allowClear :maxlength="150" v-model:value="formData.cardID"  @keyup.enter="loginSubmit('login')" />
             </a-form-item>
             <a-form-item name="password">
               <a-input-password placeholder="如有设置密码请输入密码，否则请忽略" allowClear :maxlength="150"
+                @keyup.enter="loginSubmit('login')" 
                 v-model:value="formData.password" />
             </a-form-item>
             <a-form-item name="agree">
@@ -186,7 +187,7 @@ const formData: any = reactive({
   cardID: '', // 卡密
   password: '',
   newUserNum: '', // 续费卡号
-  agree: [] // 是否统同意协议
+  agree: [true] // 是否统同意协议
 })
 
 // 页签
@@ -232,7 +233,7 @@ const loginHandle = async () => {
     captchaCode: '',
     captchaId: '',
     cardID: formData.cardID,
-    password: ''
+    password: formData.password,
   }
   state.loading = true
   let { code, data, message }: any = await UserApi.userLogin(params)

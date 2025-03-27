@@ -5,8 +5,6 @@ import ls from '@/utils/Storage'
 import emitter from '@/utils/eventBus'
 const whiteApiList = []
 
-console.log('baseURL ---> ', baseURL)
-
 const ContentType = {
   json: 'application/json',
   formData: 'multipart/form-data'
@@ -49,6 +47,11 @@ baseService.interceptors.response.use(
       } else if (code === 406) {
         ls.clear()
         window.location.href = window.location.origin + '/#/user/login'
+      } else if( code === 404) {
+        setTimeout(() => {
+          ls.clear()
+          window.location.href = window.location.origin + '/#/user/login'
+        }, 2000)
       }
       return res.data
     }

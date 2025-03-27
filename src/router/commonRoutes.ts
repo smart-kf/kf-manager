@@ -18,55 +18,55 @@ export default [
       {
         path: '/qrCode',
         name: 'qrCode',
-        meta: { title: '二维码', icon: 'icon-erweima', keepAlive: false },
-        component: () => import('@/views/qrCode/index.vue'),
+        meta: { title: '二维码', icon: 'icon-erweima' },
+        component: () => import('@/views/qrCode/index.vue')
       },
       {
         path: '/qrCode/order',
-        name: 'order',
-        component: () => import(/* webpackChunkName: "user" */ '@/views/qrCode/order.vue'),
-        meta: { title: '域名订单', icon: 'icon-erweima', keepAlive: false },
+        name: 'qrCode-order',
+        component: () => import('@/views/qrCode/order.vue'),
+        meta: { title: '域名订单', hidden: true }
       },
       {
         path: '/chat',
         name: 'Chat',
         component: () => import('@/views/chat/index.vue'),
-        meta: { title: '消息', icon: 'icon-xiaoxi1', keepAlive: false }
+        meta: { title: '消息', icon: 'icon-xiaoxi1' }
       },
       {
         path: '/welcomeMsg',
         name: 'welcomeMsg',
-        meta: { title: '欢迎语', icon: 'icon-huanyingyu', keepAlive: false },
+        meta: { title: '欢迎语', icon: 'icon-huanyingyu' },
         component: () => import('@/views/welcomeMsg/index.vue')
       },
       {
         path: '/aiReply',
         name: 'aiReply',
-        meta: { title: '智能回复', icon: 'icon-zhinenghuifu', keepAlive: false },
+        meta: { title: '智能回复', icon: 'icon-zhinenghuifu' },
         component: () => import('@/views/aiReply/index.vue')
       },
       {
         path: '/quickReply',
         name: 'quickReply',
-        meta: { title: '快捷回复', icon: 'icon-kuaijiehuifu', keepAlive: false },
+        meta: { title: '快捷回复', icon: 'icon-kuaijiehuifu' },
         component: () => import('@/views/quickReply/index.vue')
       },
       {
         path: '/speechCraft',
         name: 'speechCraft',
-        meta: { title: '话术复制', icon: 'icon-fuzhi', keepAlive: false },
+        meta: { title: '话术复制', icon: 'icon-fuzhi' },
         component: () => import('@/views/speech/index.vue')
       },
       {
         path: '/systemLog',
         name: 'systemLog',
-        meta: { title: '日志', icon: 'icon-rizhi', keepAlive: false },
+        meta: { title: '日志', icon: 'icon-rizhi' },
         component: () => import('@/views/systemLog/index.vue')
       },
       {
         path: '/systemSetting',
         name: 'systemSetting',
-        meta: { title: '设置', icon: 'icon-shezhi', keepAlive: false },
+        meta: { title: '设置', icon: 'icon-shezhi' },
         component: () => import('@/views/systemSetting/index.vue')
       }
     ]
