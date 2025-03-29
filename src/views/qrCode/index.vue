@@ -43,6 +43,10 @@
                 <a-tag v-if="record.status === 2" color="gray">失效</a-tag>
                 <a-tag v-if="record.status === 3" color="orange">暂停引新粉</a-tag>
               </template>
+              <template v-if="column.dataIndex === 'isPrivate'">
+                <a-tag v-if="record.isPrivate" color="#87d068">独立域名</a-tag>
+                <a-tag v-else" color="gray">公共域名</a-tag>
+              </template>
               <template v-if="column.dataIndex === 'operation'">
                 <a-space>
                   <a-tooltip title="下载二维码图片">
@@ -115,13 +119,18 @@ const qrcode = reactive({
 const qrcodeCanvasRef: any = ref('')
 
 const columns = [
-  {
-    title: '独立域名',
+{
+    title: '域名',
     key: 'domain',
     dataIndex: 'domain'
   },
   {
-    title: '域名状态',
+    title: '域名性质',
+    key: 'isPrivate',
+    dataIndex: 'isPrivate'
+  },
+  {
+    title: '二维码状态',
     key: 'status', // 1=正常，2=微信封禁, 3=系统封禁
     dataIndex: 'status',
     width: 250

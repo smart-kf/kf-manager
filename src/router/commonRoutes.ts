@@ -39,12 +39,13 @@ export default [
         meta: { title: '欢迎语', icon: 'icon-huanyingyu' },
         component: () => import('@/views/welcomeMsg/index.vue')
       },
-      {
-        path: '/aiReply',
-        name: 'aiReply',
-        meta: { title: '智能回复', icon: 'icon-zhinenghuifu' },
-        component: () => import('@/views/aiReply/index.vue')
-      },
+      // 没有想好怎么实现， 暂时屏蔽
+      // {
+      //   path: '/aiReply',
+      //   name: 'aiReply',
+      //   meta: { title: '智能回复', icon: 'icon-zhinenghuifu' },
+      //   component: () => import('@/views/aiReply/index.vue')
+      // },
       {
         path: '/quickReply',
         name: 'quickReply',
